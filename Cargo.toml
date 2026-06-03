@@ -10,3 +10,6 @@ log = "0.4"
 pollster = "0.3"
 wgpu = "28.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
+
+[profile.release]
+strip = true
