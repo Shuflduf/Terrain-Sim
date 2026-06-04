@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::state::State;
 use winit::{
     application::ApplicationHandler,
-    event::*,
+    event::{KeyEvent, WindowEvent},
     event_loop::ActiveEventLoop,
     keyboard::PhysicalKey,
     window::Window,
