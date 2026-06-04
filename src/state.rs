@@ -1,13 +1,7 @@
 use crate::mesh::{INDICES, VERTICES, Vertex};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
-use winit::{
-    application::ApplicationHandler,
-    event::*,
-    event_loop::{ActiveEventLoop, EventLoop},
-    keyboard::{KeyCode, PhysicalKey},
-    window::Window,
-};
+use winit::{event_loop::ActiveEventLoop, keyboard::KeyCode, window::Window};
 
 pub struct State {
     surface: wgpu::Surface<'static>,
@@ -240,9 +234,8 @@ impl State {
     }
 
     pub fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
-        match (code, is_pressed) {
-            (KeyCode::Escape, true) => event_loop.exit(),
-            _ => {}
+        if let (KeyCode::Escape, true) = (code, is_pressed) {
+            event_loop.exit()
         }
     }
 
