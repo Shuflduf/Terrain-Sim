@@ -8,7 +8,7 @@ use crate::{
 };
 use std::sync::Arc;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
-use winit::window::Window;
+use winit::window::{CursorGrabMode, Window};
 
 mod adapter;
 mod config;
@@ -95,5 +95,16 @@ impl GpuContext {
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())
+    }
+
+    pub fn lock_mouse(&self, lock: bool) {
+        self.window.set_cursor_visible(!lock);
+        if lock {
+            if let Err(_) = self.window.set_cursor_grab(CursorGrabMode::Locked) {
+                let _ = self.window.set_cursor_grab(CursorGrabMode::Confined);
+            }
+        } else {
+            let _ = self.window.set_cursor_grab(CursorGrabMode::None);
+        }
     }
 }

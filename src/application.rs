@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use crate::{
     camera::{Camera, CameraController},
-    gpu_context::GpuContext,
+    gpu_context::{self, GpuContext},
 };
 use winit::{
     application::ApplicationHandler,
-    event::{KeyEvent, WindowEvent},
+    event::{KeyEvent, MouseButton, WindowEvent},
     event_loop::ActiveEventLoop,
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
@@ -32,6 +32,13 @@ impl Application {
             event_loop.exit();
         } else {
             self.camera_controller.handle_key(code, is_pressed);
+        }
+    }
+
+    fn handle_mouse_button(&mut self, mouse_button: MouseButton) {
+        if mouse_button == MouseButton::Left {
+            let lock_mouse = self.camera_controller.toggle_mouse();
+            self.gpu_context.as_ref().unwrap().lock_mouse(lock_mouse);
         }
     }
 
@@ -94,8 +101,7 @@ impl ApplicationHandler<GpuContext> for Application {
             } => {
                 self.handle_key(event_loop, code, key_state.is_pressed());
             }
-            WindowEvent::CursorMoved { position, .. } => {}
-
+            WindowEvent::MouseInput { button, .. } => self.handle_mouse_button(button),
             _ => {}
         }
     }

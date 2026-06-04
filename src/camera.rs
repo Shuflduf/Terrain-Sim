@@ -1,7 +1,11 @@
-use cgmath::InnerSpace;
+use std::f32::consts::FRAC_PI_2;
+
+use cgmath::{Angle, ElementWise, InnerSpace, Rad, Vector3};
+use wgpu::naga::back::hlsl::EntryPointError;
 use winit::keyboard::KeyCode;
 
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_cols(
+const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
+const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_cols(
     cgmath::Vector4::new(1.0, 0.0, 0.0, 0.0), //
     cgmath::Vector4::new(0.0, 1.0, 0.0, 0.0), //
     cgmath::Vector4::new(0.0, 0.0, 0.5, 0.0), //
@@ -10,8 +14,8 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_co
 
 pub struct Camera {
     eye: cgmath::Point3<f32>,
-    yaw: f32,
-    pitch: f32,
+    yaw: Rad<f32>,
+    pitch: Rad<f32>,
     up: cgmath::Vector3<f32>,
     aspect: f32,
     vertical_fov: f32,
@@ -23,8 +27,8 @@ impl Camera {
     pub fn new(width: f32, height: f32) -> Self {
         Self {
             eye: (0.0, 0.0, 4.0).into(),
-            yaw: 0.0,
-            pitch: 0.0,
+            yaw: Rad(-FRAC_PI_2),
+            pitch: Rad(0.0),
             up: cgmath::Vector3::unit_y(),
             aspect: width / height,
             vertical_fov: 45.0,
@@ -70,6 +74,7 @@ pub struct CameraController {
     is_left_pressed: bool,
     is_right_pressed: bool,
 
+    mouse_control: bool,
     mouse_sensitivity: f32,
     mouse_delta: (f64, f64),
 }
@@ -106,11 +111,47 @@ impl CameraController {
     }
 
     pub fn handle_mouse(&mut self, dx: f64, dy: f64) {
-        println!("{dx}, {dy}");
-        self.mouse_delta = (self.mouse_delta.0 - dx, self.mouse_delta.1 + dy)
+        self.mouse_delta = (self.mouse_delta.0 + dx, self.mouse_delta.1 - dy)
+    }
+
+    pub fn toggle_mouse(&mut self) -> bool {
+        self.mouse_control = !self.mouse_control;
+        return self.mouse_control;
     }
 
     pub fn update_camera(&mut self, camera: &mut Camera) {
+        if self.mouse_control {
+            camera.yaw += Rad(self.mouse_delta.0 as f32 * self.mouse_sensitivity);
+            camera.pitch += Rad(self.mouse_delta.1 as f32 * self.mouse_sensitivity);
+            if camera.pitch < -Rad(SAFE_FRAC_PI_2) {
+                camera.pitch = -Rad(SAFE_FRAC_PI_2);
+            } else if camera.pitch > Rad(SAFE_FRAC_PI_2) {
+                camera.pitch = Rad(SAFE_FRAC_PI_2);
+            }
+        }
+        self.mouse_delta = (0.0, 0.0);
+
+        let forward = Vector3::new(
+            camera.yaw.cos() * camera.pitch.cos(),
+            camera.pitch.sin(),
+            camera.yaw.sin() * camera.pitch.cos(),
+        )
+        .normalize();
+        let right = forward.cross(camera.up);
+
+        if self.is_forward_pressed {
+            camera.eye += forward * self.speed;
+        }
+        if self.is_backward_pressed {
+            camera.eye -= forward * self.speed;
+        }
+        if self.is_left_pressed {
+            camera.eye -= right * self.speed;
+        }
+        if self.is_right_pressed {
+            camera.eye += right * self.speed;
+        }
+
         // use cgmath::InnerSpace;
         // let forward = camera.target - camera.eye;
         // let forward_norm = forward.normalize();
@@ -140,9 +181,6 @@ impl CameraController {
         // if self.is_left_pressed {
         //     camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
         // }
-        camera.yaw += self.mouse_delta.0 as f32 * self.mouse_sensitivity;
-        camera.pitch += self.mouse_delta.1 as f32 * self.mouse_sensitivity;
-        self.mouse_delta = (0.0, 0.0);
     }
 }
 
@@ -150,6 +188,7 @@ impl Default for CameraController {
     fn default() -> Self {
         Self {
             speed: 0.02,
+            mouse_control: false,
             mouse_sensitivity: 0.002,
             mouse_delta: (0.0, 0.0),
             is_forward_pressed: false,
