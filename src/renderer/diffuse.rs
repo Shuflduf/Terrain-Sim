@@ -1,6 +1,5 @@
-use wgpu::{
-    BindGroup, BindGroupLayout, Device, Queue,
-};
+use image::GenericImageView;
+use wgpu::{BindGroup, BindGroupLayout, Device, Queue};
 
 pub fn create_diffuse_bind_group(
     device: &Device,
@@ -11,7 +10,6 @@ pub fn create_diffuse_bind_group(
     let diffuse_image = image::load_from_memory(diffuse_bytes)?;
     let diffuse_rgba = diffuse_image.to_rgba8();
 
-    use image::GenericImageView;
     let dimensions = diffuse_image.dimensions();
 
     let texture_size = wgpu::Extent3d {

@@ -1,6 +1,4 @@
-use wgpu::{
-    Buffer, Device, util::DeviceExt,
-};
+use wgpu::{Buffer, Device, util::DeviceExt};
 
 use crate::mesh::INDICES;
 
