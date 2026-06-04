@@ -3,8 +3,8 @@ use winit::event_loop::EventLoop;
 use crate::application::Application;
 
 mod application;
+mod gpu_context;
 mod mesh;
-mod state;
 
 pub fn run() -> anyhow::Result<()> {
     env_logger::init();

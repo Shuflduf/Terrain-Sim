@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::state::State;
+use crate::gpu_context::GpuContext;
 use winit::{
     application::ApplicationHandler,
     event::{KeyEvent, WindowEvent},
@@ -10,7 +10,7 @@ use winit::{
 };
 
 pub struct Application {
-    state: Option<State>,
+    state: Option<GpuContext>,
 }
 
 impl Application {
@@ -19,14 +19,14 @@ impl Application {
     }
 }
 
-impl ApplicationHandler<State> for Application {
+impl ApplicationHandler<GpuContext> for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window_attributes = Window::default_attributes();
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
-        self.state = Some(pollster::block_on(State::new(window)).unwrap());
+        self.state = Some(pollster::block_on(GpuContext::new(window)).unwrap());
     }
 
-    fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: State) {
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
         self.state = Some(event)
     }
 
