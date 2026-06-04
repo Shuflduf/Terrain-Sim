@@ -1,4 +1,3 @@
-use wgpu::SurfaceConfiguration;
 use winit::keyboard::KeyCode;
 
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_cols(
@@ -19,12 +18,12 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(config: &SurfaceConfiguration) -> Self {
+    pub fn new(width: f32, height: f32) -> Self {
         Self {
             eye: (3.0, 1.0, 2.0).into(),
             target: (0.0, 0.0, 0.0).into(),
             up: cgmath::Vector3::unit_y(),
-            aspect: config.width as f32 / config.height as f32,
+            aspect: width / height,
             vertical_fov: 45.0,
             z_near: 0.1,
             z_far: 1000.0,
@@ -44,7 +43,7 @@ impl Camera {
     }
 }
 
-struct CameraController {
+pub struct CameraController {
     speed: f32,
     is_forward_pressed: bool,
     is_backward_pressed: bool,
@@ -53,7 +52,7 @@ struct CameraController {
 }
 
 impl CameraController {
-    fn new(speed: f32) -> Self {
+    pub fn new(speed: f32) -> Self {
         Self {
             speed,
             is_forward_pressed: false,
@@ -63,7 +62,7 @@ impl CameraController {
         }
     }
 
-    fn handle_key(&mut self, code: KeyCode, is_pressed: bool) -> bool {
+    pub fn handle_key(&mut self, code: KeyCode, is_pressed: bool) -> bool {
         match code {
             KeyCode::KeyW | KeyCode::ArrowUp => {
                 self.is_forward_pressed = is_pressed;
@@ -85,7 +84,7 @@ impl CameraController {
         }
     }
 
-    fn update_camera(&self, camera: &mut Camera) {
+    pub fn update_camera(&self, camera: &mut Camera) {
         use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();

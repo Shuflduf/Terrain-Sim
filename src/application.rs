@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::gpu_context::GpuContext;
+use crate::{
+    camera::{Camera, CameraController},
+    gpu_context::GpuContext,
+};
 use winit::{
     application::ApplicationHandler,
     event::{KeyEvent, WindowEvent},
@@ -10,12 +13,18 @@ use winit::{
 };
 
 pub struct Application {
-    state: Option<GpuContext>,
+    gpu_context: Option<GpuContext>,
+    camera: Option<Camera>,
+    camera_controller: CameraController,
 }
 
 impl Application {
     pub fn new() -> Self {
-        Self { state: None }
+        Self {
+            gpu_context: None,
+            camera: None,
+            camera_controller: CameraController::new(0.2),
+        }
     }
 }
 
@@ -23,11 +32,14 @@ impl ApplicationHandler<GpuContext> for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window_attributes = Window::default_attributes();
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
-        self.state = Some(pollster::block_on(GpuContext::new(window)).unwrap());
+        let size = window.inner_size();
+        let camera = Camera::new(size.width as f32, size.height as f32);
+        self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &camera)).unwrap());
+        self.camera = Some(camera);
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
-        self.state = Some(event)
+        self.gpu_context = Some(event)
     }
 
     fn window_event(
@@ -36,17 +48,17 @@ impl ApplicationHandler<GpuContext> for Application {
         _window_id: winit::window::WindowId,
         event: WindowEvent,
     ) {
-        let state = match &mut self.state {
+        let gpu_context = match &mut self.gpu_context {
             Some(canvas) => canvas,
             None => return,
         };
 
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::Resized(size) => state.resize(size.width, size.height),
+            WindowEvent::Resized(size) => gpu_context.resize(size.width, size.height),
             WindowEvent::RedrawRequested => {
-                state.update();
-                match state.render() {
+                gpu_context.update();
+                match gpu_context.render() {
                     Ok(_) => {}
                     Err(e) => {
                         log::error!("{e}");
@@ -62,7 +74,7 @@ impl ApplicationHandler<GpuContext> for Application {
                         ..
                     },
                 ..
-            } => state.handle_key(event_loop, code, key_state.is_pressed()),
+            } => gpu_context.handle_key(event_loop, code, key_state.is_pressed()),
             _ => {}
         }
     }

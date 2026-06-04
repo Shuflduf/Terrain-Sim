@@ -1,50 +1,40 @@
 use crate::{
     camera::Camera,
     gpu_context::{
-        adapter::request_adapter,
-        camera_buffer::{CameraUniform, create_camera_buffer},
-        config::create_config,
-        device::request_device,
-        instance::create_instance,
-        surface::create_surface,
+        adapter::request_adapter, config::create_config, device::request_device,
+        instance::create_instance, surface::create_surface,
     },
     renderer::Renderer,
 };
 use std::sync::Arc;
-use wgpu::{Buffer, Device, Queue, Surface, SurfaceConfiguration};
+use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
 use winit::{event_loop::ActiveEventLoop, keyboard::KeyCode, window::Window};
 
 mod adapter;
-mod camera_buffer;
 mod config;
 mod device;
 mod instance;
 mod surface;
 
 pub struct GpuContext {
+    pub config: SurfaceConfiguration,
     surface: Surface<'static>,
     device: Device,
     queue: Queue,
-    config: SurfaceConfiguration,
     window: Arc<Window>,
     is_surface_configured: bool,
 
-    camera: Camera,
-    camera_uniform: CameraUniform,
-    camera_buffer: Buffer,
     renderer: Renderer,
 }
 
 impl GpuContext {
-    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+    pub async fn new(window: Arc<Window>, camera: &Camera) -> anyhow::Result<Self> {
         let instance = create_instance();
         let surface = create_surface(&instance, &window)?;
         let adapter = request_adapter(&instance, &surface).await?;
         let (device, queue) = request_device(&adapter).await?;
         let config = create_config(&surface, &adapter, &window);
-        let camera = Camera::new(&config);
-        let (camera_uniform, camera_buffer) = create_camera_buffer(&device, &camera);
-        let renderer = Renderer::new(&device, &config, &queue, &camera_buffer)?;
+        let renderer = Renderer::new(&device, &config, &queue, camera)?;
 
         Ok(Self {
             surface,
@@ -53,9 +43,6 @@ impl GpuContext {
             config,
             window,
             is_surface_configured: false,
-            camera,
-            camera_uniform,
-            camera_buffer,
             renderer,
         })
     }

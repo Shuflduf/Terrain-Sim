@@ -1,6 +1,5 @@
 use wgpu::{BindGroup, BindGroupLayout, Buffer, Device};
 
-use crate::camera::Camera;
 
 pub fn create_camera_bind_group(
     device: &Device,

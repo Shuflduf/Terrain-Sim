@@ -3,13 +3,21 @@ use wgpu::{
     TextureView,
 };
 
-use crate::renderer::{
-    camera_bind_group::create_camera_bind_group, diffuse::create_diffuse_bind_group,
-    index_buffer::create_index_buffer, layout::create_texture_bind_group_layout,
-    pipeline::create_render_pipeline, vertex_buffer::create_vertex_buffer,
+use crate::{
+    camera::Camera,
+    renderer::{
+        camera_bind_group::create_camera_bind_group,
+        camera_buffer::{CameraUniform, create_camera_buffer},
+        diffuse::create_diffuse_bind_group,
+        index_buffer::create_index_buffer,
+        layout::create_texture_bind_group_layout,
+        pipeline::create_render_pipeline,
+        vertex_buffer::create_vertex_buffer,
+    },
 };
 
 mod camera_bind_group;
+mod camera_buffer;
 mod diffuse;
 mod index_buffer;
 mod layout;
@@ -23,6 +31,8 @@ pub struct Renderer {
     index_buffer: Buffer,
     num_indices: u32,
     diffuse_bind_group: BindGroup,
+    camera_uniform: CameraUniform,
+    camera_buffer: Buffer,
     camera_bind_group: BindGroup,
 }
 
@@ -31,10 +41,11 @@ impl Renderer {
         device: &Device,
         config: &SurfaceConfiguration,
         queue: &Queue,
-        camera_buffer: &Buffer,
+        camera: &Camera,
     ) -> anyhow::Result<Self> {
         let texture_layout = create_texture_bind_group_layout(device);
         let diffuse_bind_group = create_diffuse_bind_group(device, queue, &texture_layout)?;
+        let (camera_uniform, camera_buffer) = create_camera_buffer(device, camera);
         let (camera_bind_group, camera_layout) = create_camera_bind_group(device, &camera_buffer);
         let render_pipeline =
             create_render_pipeline(device, config, &texture_layout, &camera_layout);
@@ -47,6 +58,8 @@ impl Renderer {
             index_buffer,
             num_indices,
             diffuse_bind_group,
+            camera_uniform,
+            camera_buffer,
             camera_bind_group,
         })
     }
