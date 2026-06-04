@@ -10,6 +10,7 @@ mod diffuse;
 mod index_buffer;
 mod layout;
 mod pipeline;
+mod texture;
 mod vertex_buffer;
 
 pub struct Renderer {
