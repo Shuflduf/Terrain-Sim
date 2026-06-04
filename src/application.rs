@@ -22,8 +22,8 @@ impl Application {
     pub fn new() -> Self {
         Self {
             gpu_context: None,
-            camera: Camera::new(-1.0, -1.0),
-            camera_controller: CameraController::new(0.02),
+            camera: Camera::default(),
+            camera_controller: CameraController::default(),
         }
     }
 
@@ -94,7 +94,22 @@ impl ApplicationHandler<GpuContext> for Application {
             } => {
                 self.handle_key(event_loop, code, key_state.is_pressed());
             }
+            WindowEvent::CursorMoved { position, .. } => {}
 
+            _ => {}
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: winit::event::DeviceId,
+        event: winit::event::DeviceEvent,
+    ) {
+        match event {
+            winit::event::DeviceEvent::MouseMotion { delta } => {
+                self.camera_controller.handle_mouse(delta.0, delta.1)
+            }
             _ => {}
         }
     }

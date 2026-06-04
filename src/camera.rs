@@ -1,3 +1,4 @@
+use cgmath::InnerSpace;
 use winit::keyboard::KeyCode;
 
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_cols(
@@ -9,7 +10,8 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_co
 
 pub struct Camera {
     eye: cgmath::Point3<f32>,
-    target: cgmath::Point3<f32>,
+    yaw: f32,
+    pitch: f32,
     up: cgmath::Vector3<f32>,
     aspect: f32,
     vertical_fov: f32,
@@ -20,8 +22,9 @@ pub struct Camera {
 impl Camera {
     pub fn new(width: f32, height: f32) -> Self {
         Self {
-            eye: (3.0, 1.0, 2.0).into(),
-            target: (0.0, 0.0, 0.0).into(),
+            eye: (0.0, 0.0, 4.0).into(),
+            yaw: 0.0,
+            pitch: 0.0,
             up: cgmath::Vector3::unit_y(),
             aspect: width / height,
             vertical_fov: 45.0,
@@ -35,7 +38,14 @@ impl Camera {
     }
 
     pub fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
-        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
+        let (sin_pitch, cos_pitch) = self.pitch.sin_cos();
+        let (sin_yaw, cos_yaw) = self.yaw.sin_cos();
+        let view = cgmath::Matrix4::look_to_rh(
+            self.eye,
+            cgmath::Vector3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(),
+            self.up,
+        );
+
         let proj = cgmath::perspective(
             cgmath::Deg(self.vertical_fov),
             self.aspect,
@@ -47,22 +57,29 @@ impl Camera {
     }
 }
 
+impl Default for Camera {
+    fn default() -> Self {
+        Self::new(1000.0, 1000.0)
+    }
+}
+
 pub struct CameraController {
     speed: f32,
     is_forward_pressed: bool,
     is_backward_pressed: bool,
     is_left_pressed: bool,
     is_right_pressed: bool,
+
+    mouse_sensitivity: f32,
+    mouse_delta: (f64, f64),
 }
 
 impl CameraController {
-    pub fn new(speed: f32) -> Self {
+    pub fn new(speed: f32, mouse_sensitivity: f32) -> Self {
         Self {
             speed,
-            is_forward_pressed: false,
-            is_backward_pressed: false,
-            is_left_pressed: false,
-            is_right_pressed: false,
+            mouse_sensitivity,
+            ..Default::default()
         }
     }
 
@@ -88,35 +105,57 @@ impl CameraController {
         }
     }
 
-    pub fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
-        let forward = camera.target - camera.eye;
-        let forward_norm = forward.normalize();
-        let forward_mag = forward.magnitude();
+    pub fn handle_mouse(&mut self, dx: f64, dy: f64) {
+        println!("{dx}, {dy}");
+        self.mouse_delta = (self.mouse_delta.0 - dx, self.mouse_delta.1 + dy)
+    }
 
-        // Prevents glitching when the camera gets too close to the
-        // center of the scene.
-        if self.is_forward_pressed && forward_mag > self.speed {
-            camera.eye += forward_norm * self.speed;
-        }
-        if self.is_backward_pressed {
-            camera.eye -= forward_norm * self.speed;
-        }
+    pub fn update_camera(&mut self, camera: &mut Camera) {
+        // use cgmath::InnerSpace;
+        // let forward = camera.target - camera.eye;
+        // let forward_norm = forward.normalize();
+        // let forward_mag = forward.magnitude();
 
-        let right = forward_norm.cross(camera.up);
+        // // Prevents glitching when the camera gets too close to the
+        // // center of the scene.
+        // if self.is_forward_pressed && forward_mag > self.speed {
+        //     camera.eye += forward_norm * self.speed;
+        // }
+        // if self.is_backward_pressed {
+        //     camera.eye -= forward_norm * self.speed;
+        // }
 
-        // Redo radius calc in case the forward/backward is pressed.
-        let forward = camera.target - camera.eye;
-        let forward_mag = forward.magnitude();
+        // let right = forward_norm.cross(camera.up);
 
-        if self.is_right_pressed {
-            // Rescale the distance between the target and the eye so
-            // that it doesn't change. The eye, therefore, still
-            // lies on the circle made by the target and eye.
-            camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
-        }
-        if self.is_left_pressed {
-            camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
+        // // Redo radius calc in case the forward/backward is pressed.
+        // let forward = camera.target - camera.eye;
+        // let forward_mag = forward.magnitude();
+
+        // if self.is_right_pressed {
+        //     // Rescale the distance between the target and the eye so
+        //     // that it doesn't change. The eye, therefore, still
+        //     // lies on the circle made by the target and eye.
+        //     camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
+        // }
+        // if self.is_left_pressed {
+        //     camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
+        // }
+        camera.yaw += self.mouse_delta.0 as f32 * self.mouse_sensitivity;
+        camera.pitch += self.mouse_delta.1 as f32 * self.mouse_sensitivity;
+        self.mouse_delta = (0.0, 0.0);
+    }
+}
+
+impl Default for CameraController {
+    fn default() -> Self {
+        Self {
+            speed: 0.02,
+            mouse_sensitivity: 0.002,
+            mouse_delta: (0.0, 0.0),
+            is_forward_pressed: false,
+            is_backward_pressed: false,
+            is_left_pressed: false,
+            is_right_pressed: false,
         }
     }
 }
