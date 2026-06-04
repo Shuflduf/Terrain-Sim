@@ -8,7 +8,7 @@ use crate::{
 };
 use std::sync::Arc;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
-use winit::{event_loop::ActiveEventLoop, keyboard::KeyCode, window::Window};
+use winit::window::Window;
 
 mod adapter;
 mod config;
