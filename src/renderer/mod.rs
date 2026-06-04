@@ -64,6 +64,15 @@ impl Renderer {
         })
     }
 
+    pub fn update_camera(&mut self, camera: &Camera, queue: &Queue) {
+        self.camera_uniform.update_view_proj(camera);
+        queue.write_buffer(
+            &self.camera_buffer,
+            0,
+            bytemuck::cast_slice(&[self.camera_uniform]),
+        );
+    }
+
     pub fn draw(&self, encoder: &mut CommandEncoder, view: &TextureView) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),

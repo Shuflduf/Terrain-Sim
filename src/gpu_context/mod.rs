@@ -56,13 +56,9 @@ impl GpuContext {
         }
     }
 
-    pub fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
-        if let (KeyCode::Escape, true) = (code, is_pressed) {
-            event_loop.exit()
-        }
+    pub fn update(&mut self, camera: &Camera) {
+        self.renderer.update_camera(camera, &self.queue)
     }
-
-    pub fn update(&mut self) {}
 
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();

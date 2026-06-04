@@ -8,7 +8,7 @@ use winit::{
     application::ApplicationHandler,
     event::{KeyEvent, WindowEvent},
     event_loop::ActiveEventLoop,
-    keyboard::PhysicalKey,
+    keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };
 
@@ -23,8 +23,24 @@ impl Application {
         Self {
             gpu_context: None,
             camera: None,
-            camera_controller: CameraController::new(0.2),
+            camera_controller: CameraController::new(0.02),
         }
+    }
+
+    fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
+        if code == KeyCode::Escape && is_pressed {
+            event_loop.exit();
+        } else {
+            self.camera_controller.handle_key(code, is_pressed);
+        }
+    }
+
+    fn update(&mut self) {
+        let camera = match &mut self.camera {
+            Some(cam) => cam,
+            None => return,
+        };
+        self.camera_controller.update_camera(camera);
     }
 }
 
@@ -49,16 +65,26 @@ impl ApplicationHandler<GpuContext> for Application {
         event: WindowEvent,
     ) {
         let gpu_context = match &mut self.gpu_context {
-            Some(canvas) => canvas,
+            Some(ctx) => ctx,
             None => return,
         };
 
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::Resized(size) => gpu_context.resize(size.width, size.height),
+            WindowEvent::Resized(size) => {
+                if let Some(cam) = &mut self.camera {
+                    cam.resize(size.width as f32, size.height as f32);
+                }
+                gpu_context.resize(size.width, size.height);
+            }
             WindowEvent::RedrawRequested => {
-                gpu_context.update();
-                match gpu_context.render() {
+                self.update();
+                if let Some(cam) = &self.camera
+                    && let Some(ctx) = &mut self.gpu_context
+                {
+                    ctx.update(cam);
+                }
+                match self.gpu_context.as_mut().unwrap().render() {
                     Ok(_) => {}
                     Err(e) => {
                         log::error!("{e}");
@@ -74,7 +100,10 @@ impl ApplicationHandler<GpuContext> for Application {
                         ..
                     },
                 ..
-            } => gpu_context.handle_key(event_loop, code, key_state.is_pressed()),
+            } => {
+                self.handle_key(event_loop, code, key_state.is_pressed());
+            }
+
             _ => {}
         }
     }

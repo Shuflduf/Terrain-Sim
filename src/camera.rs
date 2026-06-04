@@ -30,6 +30,10 @@ impl Camera {
         }
     }
 
+    pub fn resize(&mut self, width: f32, height: f32) {
+        self.aspect = width / height;
+    }
+
     pub fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
         let proj = cgmath::perspective(
