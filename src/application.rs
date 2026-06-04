@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    camera::{Camera, CameraController},
-    gpu_context::{self, GpuContext},
+    camera::Camera,
+    camera_controller::CameraController,
+    gpu_context::GpuContext,
 };
 use winit::{
     application::ApplicationHandler,
@@ -57,7 +58,7 @@ impl ApplicationHandler<GpuContext> for Application {
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
-        self.gpu_context = Some(event)
+        self.gpu_context = Some(event);
     }
 
     fn window_event(
@@ -83,7 +84,7 @@ impl ApplicationHandler<GpuContext> for Application {
                     ctx.update(&self.camera);
                 }
                 match self.gpu_context.as_mut().unwrap().render() {
-                    Ok(_) => {}
+                    Ok(()) => {}
                     Err(e) => {
                         log::error!("{e}");
                         event_loop.exit();
@@ -112,11 +113,8 @@ impl ApplicationHandler<GpuContext> for Application {
         _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
-        match event {
-            winit::event::DeviceEvent::MouseMotion { delta } => {
-                self.camera_controller.handle_mouse(delta.0, delta.1)
-            }
-            _ => {}
+        if let winit::event::DeviceEvent::MouseMotion { delta } = event {
+            self.camera_controller.handle_mouse(delta.0, delta.1);
         }
     }
 }

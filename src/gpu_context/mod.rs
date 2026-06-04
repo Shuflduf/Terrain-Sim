@@ -57,7 +57,7 @@ impl GpuContext {
     }
 
     pub fn update(&mut self, camera: &Camera) {
-        self.renderer.update_camera(camera, &self.queue)
+        self.renderer.update_camera(camera, &self.queue);
     }
 
     pub fn render(&mut self) -> anyhow::Result<()> {
@@ -100,7 +100,7 @@ impl GpuContext {
     pub fn lock_mouse(&self, lock: bool) {
         self.window.set_cursor_visible(!lock);
         if lock {
-            if let Err(_) = self.window.set_cursor_grab(CursorGrabMode::Locked) {
+            if self.window.set_cursor_grab(CursorGrabMode::Locked).is_err() {
                 let _ = self.window.set_cursor_grab(CursorGrabMode::Confined);
             }
         } else {
