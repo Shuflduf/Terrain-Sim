@@ -12,5 +12,10 @@ pollster = "0.3"
 wgpu = "28.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
 
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["jpeg", "png"]
+
 [profile.release]
 strip = true
