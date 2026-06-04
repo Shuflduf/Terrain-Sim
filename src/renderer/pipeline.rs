@@ -1,18 +1,17 @@
-use wgpu::{
-    BindGroupLayout, Device, SurfaceConfiguration,
-};
+use wgpu::{BindGroupLayout, Device, SurfaceConfiguration};
 
 use crate::mesh::Vertex;
 
 pub fn create_render_pipeline(
     device: &Device,
     config: &SurfaceConfiguration,
-    layout: &BindGroupLayout,
+    texture_layout: &BindGroupLayout,
+    camera_layout: &BindGroupLayout,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::include_wgsl!("../shader.wgsl"));
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
-        bind_group_layouts: &[layout],
+        bind_group_layouts: &[texture_layout, camera_layout],
         immediate_size: 0,
     });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {

@@ -3,6 +3,7 @@ use winit::event_loop::EventLoop;
 use crate::application::Application;
 
 mod application;
+mod camera;
 mod gpu_context;
 mod mesh;
 mod renderer;
