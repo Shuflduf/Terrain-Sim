@@ -1,9 +1,9 @@
 #[repr(C)]
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Vertex {
-    position: [f32; 3],
-    // color: [f32; 3],
-    tex_coords: [f32; 2],
+    pub position: [f32; 3],
+    pub tex_coords: [f32; 2],
+    pub normal: [f32; 3],
 }
 
 impl Vertex {
@@ -19,22 +19,36 @@ impl Vertex {
     }
 }
 
+impl Default for Vertex {
+    fn default() -> Self {
+        Self {
+            position: [0.0; 3],
+            tex_coords: [0.0; 2],
+            normal: [0.0; 3],
+        }
+    }
+}
+
 pub const VERTICES: &[Vertex] = &[
     Vertex {
         position: [-0.5, 0.5, 0.0],
         tex_coords: [0.0, 0.0],
+        normal: [0.0, 1.0, 0.0],
     },
     Vertex {
         position: [-0.5, -0.5, 0.0],
         tex_coords: [0.0, 1.0],
+        normal: [0.0, 1.0, 0.0],
     },
     Vertex {
         position: [0.5, 0.5, 0.0],
         tex_coords: [1.0, 0.0],
+        normal: [0.0, 1.0, 0.0],
     },
     Vertex {
         position: [0.5, -0.5, 0.0],
         tex_coords: [1.0, 1.0],
+        normal: [0.0, 1.0, 0.0],
     },
 ];
 
