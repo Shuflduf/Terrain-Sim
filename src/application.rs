@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    camera::Camera,
-    camera_controller::CameraController,
-    gpu_context::GpuContext,
+    camera::Camera, camera_controller::CameraController, gpu_context::GpuContext, terrain::Terrain,
 };
 use winit::{
     application::ApplicationHandler,
@@ -17,6 +15,7 @@ pub struct Application {
     gpu_context: Option<GpuContext>,
     camera: Camera,
     camera_controller: CameraController,
+    terrain: Option<Terrain>,
 }
 
 impl Application {
@@ -25,6 +24,7 @@ impl Application {
             gpu_context: None,
             camera: Camera::default(),
             camera_controller: CameraController::default(),
+            terrain: None,
         }
     }
 
@@ -55,6 +55,7 @@ impl ApplicationHandler<GpuContext> for Application {
         let size = window.inner_size();
         self.camera = Camera::new(size.width as f32, size.height as f32);
         self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
+        self.terrain = Some(Terrain::new(&self.gpu_context.as_ref().unwrap().device, 10));
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
@@ -83,7 +84,12 @@ impl ApplicationHandler<GpuContext> for Application {
                 if let Some(ctx) = &mut self.gpu_context {
                     ctx.update(&self.camera);
                 }
-                match self.gpu_context.as_mut().unwrap().render() {
+                match self
+                    .gpu_context
+                    .as_mut()
+                    .unwrap()
+                    .render(self.terrain.as_ref().unwrap())
+                {
                     Ok(()) => {}
                     Err(e) => {
                         log::error!("{e}");

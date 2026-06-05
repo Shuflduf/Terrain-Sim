@@ -5,6 +5,7 @@ use crate::{
         instance::create_instance, surface::create_surface,
     },
     renderer::Renderer,
+    terrain::Terrain,
 };
 use std::sync::Arc;
 use wgpu::{Device, Queue, Surface, SurfaceConfiguration};
@@ -18,8 +19,8 @@ mod surface;
 
 pub struct GpuContext {
     pub config: SurfaceConfiguration,
+    pub device: Device,
     surface: Surface<'static>,
-    device: Device,
     queue: Queue,
     window: Arc<Window>,
     is_surface_configured: bool,
@@ -60,7 +61,7 @@ impl GpuContext {
         self.renderer.update_camera(camera, &self.queue);
     }
 
-    pub fn render(&mut self) -> anyhow::Result<()> {
+    pub fn render(&mut self, terrain: &Terrain) -> anyhow::Result<()> {
         self.window.request_redraw();
 
         if !self.is_surface_configured {
@@ -91,7 +92,7 @@ impl GpuContext {
                     label: Some("Render Encoder"),
                 });
 
-        self.renderer.draw(&mut encoder, &view);
+        self.renderer.draw(&mut encoder, &view, terrain);
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())

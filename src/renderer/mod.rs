@@ -14,6 +14,7 @@ use crate::{
         pipeline::create_render_pipeline,
         vertex_buffer::create_vertex_buffer,
     },
+    terrain::Terrain,
 };
 
 mod camera_bind_group;
@@ -73,7 +74,7 @@ impl Renderer {
         );
     }
 
-    pub fn draw(&self, encoder: &mut CommandEncoder, view: &TextureView) {
+    pub fn draw(&self, encoder: &mut CommandEncoder, view: &TextureView, terrain: &Terrain) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -101,6 +102,7 @@ impl Renderer {
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+        terrain.draw(&mut render_pass);
 
         drop(render_pass);
     }
