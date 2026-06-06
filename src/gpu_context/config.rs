@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use wgpu::{
-    Adapter, Surface,
-};
+use wgpu::{Adapter, Surface};
 use winit::window::Window;
 
 pub fn create_config(
@@ -23,7 +21,7 @@ pub fn create_config(
         format: surface_format,
         width: window.inner_size().width,
         height: window.inner_size().height,
-        present_mode: surface_caps.present_modes[0],
+        present_mode: wgpu::PresentMode::Fifo,
         alpha_mode: surface_caps.alpha_modes[0],
         view_formats: vec![],
         desired_maximum_frame_latency: 2,
