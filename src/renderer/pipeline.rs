@@ -1,13 +1,17 @@
 use wgpu::{BindGroupLayout, Device, SurfaceConfiguration};
 
-use crate::{assets::Assets, renderer::vertex::Vertex};
+use crate::{
+    assets::Assets,
+    renderer::{texture::Texture, vertex::Vertex},
+};
 
 pub fn create_render_pipeline(
     device: &Device,
     config: &SurfaceConfiguration,
+    assets: &Assets,
     texture_layout: &BindGroupLayout,
     camera_layout: &BindGroupLayout,
-    assets: &Assets,
+    depth_texture: &Texture,
 ) -> wgpu::RenderPipeline {
     let shader = assets.shaders.get("main").unwrap();
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -43,7 +47,13 @@ pub fn create_render_pipeline(
             polygon_mode: wgpu::PolygonMode::Fill,
             conservative: false,
         },
-        depth_stencil: None,
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less,
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
         multisample: wgpu::MultisampleState {
             count: 1,
             mask: !0,

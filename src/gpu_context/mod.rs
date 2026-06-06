@@ -5,7 +5,7 @@ use crate::{
         adapter::request_adapter, config::create_config, device::request_device,
         instance::create_instance, surface::create_surface,
     },
-    renderer::Renderer,
+    renderer::{Renderer, texture::Texture},
     terrain::Terrain,
 };
 use std::sync::Arc;
@@ -58,6 +58,8 @@ impl GpuContext {
             self.config.height = height;
             self.surface.configure(&self.device, &self.config);
             self.is_surface_configured = true;
+            self.renderer.depth_texture =
+                Texture::create_depth_texture(&self.device, &self.config, "Depth Texture")
         }
     }
 

@@ -12,6 +12,7 @@ use crate::{
         diffuse::create_diffuse_bind_group,
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
+        texture::Texture,
     },
     terrain::Terrain,
 };
@@ -25,6 +26,7 @@ pub mod texture;
 pub mod vertex;
 
 pub struct Renderer {
+    pub depth_texture: Texture,
     render_pipeline: RenderPipeline,
     diffuse_bind_group: BindGroup,
     camera_uniform: CameraUniform,
@@ -43,14 +45,22 @@ impl Renderer {
         let diffuse_bind_group = create_diffuse_bind_group(device, &texture_layout, assets)?;
         let (camera_uniform, camera_buffer) = create_camera_buffer(device, camera);
         let (camera_bind_group, camera_layout) = create_camera_bind_group(device, &camera_buffer);
-        let render_pipeline =
-            create_render_pipeline(device, config, &texture_layout, &camera_layout, assets);
+        let depth_texture = Texture::create_depth_texture(device, config, "Depth Texture");
+        let render_pipeline = create_render_pipeline(
+            device,
+            config,
+            assets,
+            &texture_layout,
+            &camera_layout,
+            &depth_texture,
+        );
 
         Ok(Self {
             render_pipeline,
             diffuse_bind_group,
             camera_uniform,
             camera_buffer,
+            depth_texture,
             camera_bind_group,
         })
     }
@@ -81,8 +91,15 @@ impl Renderer {
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: (None),
-            timestamp_writes: (None),
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth_texture.view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
             occlusion_query_set: None,
             multiview_mask: None,
         });
