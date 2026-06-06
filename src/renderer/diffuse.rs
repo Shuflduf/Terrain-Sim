@@ -1,14 +1,13 @@
-use wgpu::{BindGroup, BindGroupLayout, Device, Queue};
+use wgpu::{BindGroup, BindGroupLayout, Device};
 
-use crate::renderer::texture;
+use crate::assets::Assets;
 
 pub fn create_diffuse_bind_group(
     device: &Device,
-    queue: &Queue,
     layout: &BindGroupLayout,
+    assets: &Assets,
 ) -> anyhow::Result<BindGroup> {
-    let diffuse_bytes = include_bytes!("../frog.png");
-    let diffuse_texture = texture::Texture::from_bytes(device, queue, diffuse_bytes, "Frog Image")?;
+    let diffuse_texture = assets.textures.get("frog").unwrap();
 
     Ok(device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout,

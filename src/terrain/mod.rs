@@ -15,12 +15,13 @@ impl Terrain {
         let mut noise = FastNoiseLite::with_seed(seed);
         noise.set_noise_type(Some(NoiseType::OpenSimplex2));
 
-        let chunks = vec![
-            Chunk::new(device, &noise, (0, 0)),
-            Chunk::new(device, &noise, (0, 1)),
-            Chunk::new(device, &noise, (1, 0)),
-            Chunk::new(device, &noise, (1, 1)),
-        ];
+        let mut chunks = vec![];
+
+        for x in -10..=10 {
+            for z in -10..=10 {
+                chunks.push(Chunk::new(device, &noise, (x, z)))
+            }
+        }
 
         Self { chunks, noise }
     }

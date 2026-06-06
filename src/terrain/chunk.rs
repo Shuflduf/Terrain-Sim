@@ -1,10 +1,10 @@
-use fastnoise_lite::{FastNoiseLite, NoiseType};
+use fastnoise_lite::FastNoiseLite;
 use wgpu::{
     Buffer, BufferUsages, Device, RenderPass,
     util::{BufferInitDescriptor, DeviceExt},
 };
 
-use crate::mesh::Vertex;
+use crate::renderer::vertex::Vertex;
 
 const CHUNK_SIZE: usize = 32;
 type HeightMapArr = [[f32; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
@@ -40,11 +40,12 @@ impl Chunk {
 
 fn create_heightmap(noise: &FastNoiseLite, position: (i32, i32)) -> HeightMapArr {
     let mut height_map = [[0.0; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
-    for x in 0..(CHUNK_SIZE + 1) {
-        for z in 0..(CHUNK_SIZE + 1) {
+
+    for (x, row) in height_map.iter_mut().enumerate().take(CHUNK_SIZE + 1) {
+        for (z, tile) in row.iter_mut().enumerate().take(CHUNK_SIZE + 1) {
             let sample_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
             let sample_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
-            height_map[x][z] = sample_noise(noise, sample_x, sample_z);
+            *tile = sample_noise(noise, sample_x, sample_z);
         }
     }
     height_map
@@ -56,11 +57,11 @@ fn sample_noise(noise: &FastNoiseLite, sample_x: f32, sample_z: f32) -> f32 {
 
 fn get_vertices(position: (i32, i32), height_map: HeightMapArr) -> VerticesArr {
     let mut vertices = [Vertex::default(); (CHUNK_SIZE + 1).pow(2)];
-    for x in 0..(CHUNK_SIZE + 1) {
-        for z in 0..(CHUNK_SIZE + 1) {
+    for (x, row) in height_map.iter().enumerate().take(CHUNK_SIZE + 1) {
+        for (z, tile) in row.iter().enumerate().take(CHUNK_SIZE + 1) {
             let pos_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
             let pos_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
-            let pos_y = height_map[x][z] * 8.0;
+            let pos_y = *tile * 8.0;
             let u = x as f32 / CHUNK_SIZE as f32;
             let v = z as f32 / CHUNK_SIZE as f32;
 
@@ -91,7 +92,7 @@ fn get_indices() -> IndicesArr {
             indices[tile_index + 4] = bottom_right;
             indices[tile_index + 5] = top_right;
 
-            tile_index += 6
+            tile_index += 6;
         }
     }
     indices

@@ -1,4 +1,5 @@
 use crate::{
+    assets::Assets,
     camera::Camera,
     gpu_context::{
         adapter::request_adapter, config::create_config, device::request_device,
@@ -26,6 +27,7 @@ pub struct GpuContext {
     is_surface_configured: bool,
 
     renderer: Renderer,
+    assets: Assets,
 }
 
 impl GpuContext {
@@ -35,7 +37,8 @@ impl GpuContext {
         let adapter = request_adapter(&instance, &surface).await?;
         let (device, queue) = request_device(&adapter).await?;
         let config = create_config(&surface, &adapter, &window);
-        let renderer = Renderer::new(&device, &config, &queue, camera)?;
+        let assets = Assets::new(&device, &queue);
+        let renderer = Renderer::new(&device, &config, camera, &assets)?;
 
         Ok(Self {
             surface,
@@ -45,6 +48,7 @@ impl GpuContext {
             window,
             is_surface_configured: false,
             renderer,
+            assets,
         })
     }
 

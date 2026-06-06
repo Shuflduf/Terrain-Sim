@@ -1,6 +1,6 @@
 use wgpu::{BindGroupLayout, Device, SurfaceConfiguration};
 
-use crate::mesh::Vertex;
+use crate::renderer::vertex::Vertex;
 
 pub fn create_render_pipeline(
     device: &Device,
