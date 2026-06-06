@@ -39,6 +39,7 @@ impl Assets {
         }
 
         load_texture!("frog", "frog.png");
+        load_texture!("grass", "grass.png");
         load_shader!("main", "main.wgsl");
 
         Self { textures, shaders }

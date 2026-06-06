@@ -7,7 +7,7 @@ pub fn create_diffuse_bind_group(
     layout: &BindGroupLayout,
     assets: &Assets,
 ) -> anyhow::Result<BindGroup> {
-    let diffuse_texture = assets.textures.get("frog").unwrap();
+    let diffuse_texture = assets.textures.get("grass").unwrap();
 
     Ok(device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout,
