@@ -44,7 +44,7 @@ impl Renderer {
         let (camera_uniform, camera_buffer) = create_camera_buffer(device, camera);
         let (camera_bind_group, camera_layout) = create_camera_bind_group(device, &camera_buffer);
         let render_pipeline =
-            create_render_pipeline(device, config, &texture_layout, &camera_layout);
+            create_render_pipeline(device, config, &texture_layout, &camera_layout, assets);
 
         Ok(Self {
             render_pipeline,
