@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
+use crate::renderer::texture::Texture;
 use wgpu::{Device, Queue, ShaderModule};
 
-use crate::renderer::texture::Texture;
-
 pub struct Assets {
-    pub textures: HashMap<&'static str, Texture>,
-    pub shaders: HashMap<&'static str, ShaderModule>,
+    textures: HashMap<&'static str, Texture>,
+    shaders: HashMap<&'static str, ShaderModule>,
 }
 
 impl Assets {
@@ -40,8 +39,21 @@ impl Assets {
 
         load_texture!("frog", "frog.png");
         load_texture!("grass", "grass.png");
+
         load_shader!("main", "main.wgsl");
 
         Self { textures, shaders }
+    }
+
+    pub fn texture(&self, name: &str) -> &Texture {
+        self.textures
+            .get(name)
+            .unwrap_or_else(|| panic!("Texture `{name}` not found"))
+    }
+
+    pub fn shader(&self, name: &str) -> &ShaderModule {
+        self.shaders
+            .get(name)
+            .unwrap_or_else(|| panic!("Shader `{name}` not found"))
     }
 }
