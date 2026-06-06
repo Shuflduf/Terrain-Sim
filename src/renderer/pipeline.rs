@@ -11,7 +11,7 @@ pub fn create_render_pipeline(
     assets: &Assets,
     texture_layout: &BindGroupLayout,
     camera_layout: &BindGroupLayout,
-    depth_texture: &Texture,
+    _depth_texture: &Texture,
 ) -> wgpu::RenderPipeline {
     let shader = assets.shader("main");
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

@@ -11,6 +11,8 @@ use winit::{
     window::Window,
 };
 
+const SEED: i32 = 20;
+
 pub struct Application {
     gpu_context: Option<GpuContext>,
     camera: Camera,
@@ -55,7 +57,10 @@ impl ApplicationHandler<GpuContext> for Application {
         let size = window.inner_size();
         self.camera = Camera::new(size.width as f32, size.height as f32);
         self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
-        self.terrain = Some(Terrain::new(&self.gpu_context.as_ref().unwrap().device, 10));
+        self.terrain = Some(Terrain::new(
+            &self.gpu_context.as_ref().unwrap().device,
+            SEED,
+        ));
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
