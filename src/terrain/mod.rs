@@ -5,7 +5,7 @@ use fastnoise_lite::{FastNoiseLite, NoiseType};
 use wgpu::{Device, Queue, RenderPass};
 
 use crate::{
-    renderer::{frustum::Frustum, vertex::Vertex},
+    renderer::frustum::Frustum,
     terrain::{chunk::Chunk, skybox::Skybox, water::Water},
 };
 
@@ -18,8 +18,6 @@ const RENDER_DISTANCE_RADIUS: u32 = 16;
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
 const CHUNK_SIZE: usize = 128;
 const TEXTURE_SCALE: f32 = 0.25;
-type VerticesArr = [Vertex; (CHUNK_SIZE + 1).pow(2)];
-type IndicesArr = [u16; CHUNK_SIZE.pow(2) * 6];
 
 pub struct Terrain {
     chunks: HashMap<(i32, i32), Chunk>,

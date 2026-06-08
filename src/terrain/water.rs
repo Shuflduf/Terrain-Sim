@@ -4,7 +4,7 @@ use wgpu::{Buffer, BufferUsages, Device, Queue, RenderPass, util::DeviceExt};
 
 use crate::{
     renderer::vertex::{InstanceData, Vertex},
-    terrain::{CHUNK_SIZE, IndicesArr, VerticesArr},
+    terrain::CHUNK_SIZE,
 };
 
 const WATER_LEVEL: f32 = -5.0;
@@ -46,11 +46,12 @@ impl Water {
         }
     }
 
-    fn create_vertices() -> VerticesArr {
-        let mut vertices = [Vertex::default(); (CHUNK_SIZE + 1).pow(2)];
+    fn create_vertices() -> Vec<Vertex> {
+        let size = CHUNK_SIZE + 1;
+        let mut vertices = vec![Vertex::default(); size * size];
         for x in 0..=CHUNK_SIZE {
             for z in 0..=CHUNK_SIZE {
-                vertices[x + z * (CHUNK_SIZE + 1)] = Vertex {
+                vertices[x + z * size] = Vertex {
                     position: [x as f32, WATER_LEVEL, z as f32],
                     tex_coords: [x as f32 / CHUNK_SIZE as f32, z as f32 / CHUNK_SIZE as f32],
                     normal: [0.0, 1.0, 0.0],
@@ -60,8 +61,8 @@ impl Water {
         vertices
     }
 
-    fn create_indices() -> IndicesArr {
-        let mut indices = [0u16; CHUNK_SIZE.pow(2) * 6];
+    fn create_indices() -> Vec<u16> {
+        let mut indices = vec![0u16; CHUNK_SIZE.pow(2) * 6];
         let mut tile_index = 0;
         for x in 0..CHUNK_SIZE {
             for z in 0..CHUNK_SIZE {
