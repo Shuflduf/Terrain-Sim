@@ -1,5 +1,7 @@
 struct CameraUniform {
-    view_proj: mat4x4<f32>}
+    view_proj: mat4x4<f32>,
+    skybox_projection: mat4x4<f32>,
+}
 @group(1) @binding(0)
 var<uniform> camera: CameraUniform;
 
@@ -63,7 +65,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var color = vec4<f32>(0.0);
     for (var i = 0u; i < 4u; i = i + 1u) {
-        color += textureSample(terrain_texture,terrain_sampler, in.tex_coords, i) * weights[i];
+        color += textureSample(terrain_texture, terrain_sampler, in.tex_coords, i) * weights[i];
     }
 
     return vec4<f32>(color.rgb * brightness, color.a);

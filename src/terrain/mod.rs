@@ -3,10 +3,11 @@ use wgpu::{Device, RenderPass};
 
 use crate::{
     renderer::vertex::Vertex,
-    terrain::{chunk::Chunk, water::Water},
+    terrain::{chunk::Chunk, skybox::Skybox, water::Water},
 };
 
 mod chunk;
+mod skybox;
 mod water;
 
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
@@ -18,6 +19,7 @@ pub struct Terrain {
     chunks: Vec<Chunk>,
     noises: Vec<(FastNoiseLite, f32)>,
     water: Water,
+    skybox: Skybox,
 }
 
 impl Terrain {
@@ -39,11 +41,13 @@ impl Terrain {
         }
 
         let water = Water::new(device);
+        let skybox = Skybox::new(device);
 
         Self {
             chunks,
             noises,
             water,
+            skybox,
         }
     }
 
@@ -53,5 +57,9 @@ impl Terrain {
 
     pub fn draw_water(&self, render_pass: &mut RenderPass) {
         self.water.draw(render_pass);
+    }
+
+    pub fn draw_skybox(&self, render_pass: &mut RenderPass) {
+        self.skybox.draw(render_pass);
     }
 }

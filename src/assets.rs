@@ -69,6 +69,7 @@ impl Assets {
 
         load_shader!("main", "main.wgsl");
         load_shader!("water", "water.wgsl");
+        load_shader!("skybox", "skybox.wgsl");
 
         Self {
             textures,

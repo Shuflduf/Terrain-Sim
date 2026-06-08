@@ -1,5 +1,7 @@
 struct CameraUniform {
-    view_proj: mat4x4<f32>}
+    view_proj: mat4x4<f32>,
+    skybox_projection: mat4x4<f32>,
+}
 @group(1) @binding(0)
 var<uniform> camera: CameraUniform;
 
@@ -11,7 +13,6 @@ struct WaterUniform {
 }
 @group(0) @binding(2) 
 var<uniform> water: WaterUniform;
-
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -50,7 +51,6 @@ fn vs_main(
     out.normal = model.normal;
     return out;
 }
-
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {

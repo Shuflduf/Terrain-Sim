@@ -13,6 +13,8 @@ use crate::{
         diffuse::create_terrain_bind_group,
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
+        skybox_bind_group::{create_skybox_bind_group, create_skybox_bind_group_layout},
+        skybox_pipeline::create_skybox_pipeline,
         texture::Texture,
         water_bind_group::{create_water_bind_group, create_water_bind_group_layout},
         water_pipeline::create_water_pipeline,
@@ -27,6 +29,8 @@ mod camera_buffer;
 mod diffuse;
 mod layout;
 mod pipeline;
+mod skybox_bind_group;
+mod skybox_pipeline;
 pub mod texture;
 pub mod vertex;
 mod water_bind_group;
@@ -44,6 +48,8 @@ pub struct Renderer {
     water_bind_group: BindGroup,
     water_uniform: WaterUniform,
     water_buffer: Buffer,
+    skybox_pipeline: RenderPipeline,
+    skybox_bind_group: BindGroup,
 }
 
 impl Renderer {
@@ -78,29 +84,23 @@ impl Renderer {
         let water_uniform = WaterUniform::default();
         let water_buffer = water_uniform.create_buffer(device);
         let water_texture_layout = create_water_bind_group_layout(device);
-        let water_texture = assets.texture("water");
-        let water_sampler = device.create_sampler(&wgpu::wgt::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::Repeat,
-            address_mode_v: wgpu::AddressMode::Repeat,
-            address_mode_w: wgpu::AddressMode::Repeat,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
-            ..Default::default()
-        });
-        let water_bind_group = create_water_bind_group(
-            device,
-            &water_texture_layout,
-            &water_texture.view,
-            &water_sampler,
-            &water_buffer,
-        );
-        let water_shader = assets.shader("water");
+        let water_bind_group =
+            create_water_bind_group(device, assets, &water_texture_layout, &water_buffer);
         let water_pipeline = create_water_pipeline(
             device,
             config,
-            water_shader,
+            assets,
             &water_texture_layout,
+            &camera_layout,
+        );
+
+        let skybox_texture_layout = create_skybox_bind_group_layout(device);
+        let skybox_bind_group = create_skybox_bind_group(device, assets, &skybox_texture_layout);
+        let skybox_pipeline = create_skybox_pipeline(
+            device,
+            config,
+            assets,
+            &skybox_texture_layout,
             &camera_layout,
         );
 
@@ -115,6 +115,8 @@ impl Renderer {
             water_bind_group,
             water_uniform,
             water_buffer,
+            skybox_pipeline,
+            skybox_bind_group,
         })
     }
 
@@ -180,6 +182,11 @@ impl Renderer {
         render_pass.set_bind_group(0, &self.water_bind_group, &[]);
         render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
         terrain.draw_water(&mut render_pass);
+
+        render_pass.set_pipeline(&self.skybox_pipeline);
+        render_pass.set_bind_group(0, &self.skybox_bind_group, &[]);
+        render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
+        terrain.draw_skybox(&mut render_pass);
 
         drop(render_pass);
     }

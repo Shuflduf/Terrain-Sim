@@ -7,22 +7,27 @@ use crate::camera::Camera;
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CameraUniform {
     view_projection: [[f32; 4]; 4],
+    skybox_projection: [[f32; 4]; 4],
+}
+
+impl Default for CameraUniform {
+    fn default() -> Self {
+        Self {
+            view_projection: cgmath::Matrix4::identity().into(),
+            skybox_projection: cgmath::Matrix4::identity().into(),
+        }
+    }
 }
 
 impl CameraUniform {
-    fn new() -> Self {
-        Self {
-            view_projection: cgmath::Matrix4::identity().into(),
-        }
-    }
-
     pub fn update_view_proj(&mut self, camera: &Camera) {
         self.view_projection = camera.build_view_projection_matrix().into();
+        self.skybox_projection = camera.build_skybox_projection_matrix().into();
     }
 }
 
 pub fn create_camera_buffer(device: &Device, camera: &Camera) -> (CameraUniform, Buffer) {
-    let mut camera_uniform = CameraUniform::new();
+    let mut camera_uniform = CameraUniform::default();
     camera_uniform.update_view_proj(camera);
     let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Camera Buffer"),

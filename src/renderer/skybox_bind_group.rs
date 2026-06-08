@@ -5,9 +5,9 @@ use wgpu::{
 
 use crate::assets::Assets;
 
-pub fn create_water_bind_group_layout(device: &Device) -> BindGroupLayout {
+pub fn create_skybox_bind_group_layout(device: &Device) -> BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("Water Bind Group Layout"),
+        label: Some("Skybox Bind Group Layout"),
         entries: &[
             BindGroupLayoutEntry {
                 binding: 0,
@@ -25,39 +25,20 @@ pub fn create_water_bind_group_layout(device: &Device) -> BindGroupLayout {
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
-            BindGroupLayoutEntry {
-                binding: 2,
-                visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            },
         ],
     })
 }
 
-pub fn create_water_bind_group(
+pub fn create_skybox_bind_group(
     device: &Device,
     assets: &Assets,
     layout: &BindGroupLayout,
-    uniform_buffer: &Buffer,
+    // texture: &TextureView,
+    // sampler: &Sampler,
 ) -> BindGroup {
-    let texture = assets.texture("water");
-    let water_sampler = device.create_sampler(&wgpu::wgt::SamplerDescriptor {
-        address_mode_u: wgpu::AddressMode::Repeat,
-        address_mode_v: wgpu::AddressMode::Repeat,
-        address_mode_w: wgpu::AddressMode::Repeat,
-        mag_filter: wgpu::FilterMode::Linear,
-        min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::MipmapFilterMode::Nearest,
-        ..Default::default()
-    });
-
+    let texture = assets.texture("skybox");
     device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("Water Bind Group"),
+        label: Some("Skybox Bind Group"),
         layout,
         entries: &[
             BindGroupEntry {
@@ -66,11 +47,7 @@ pub fn create_water_bind_group(
             },
             BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&water_sampler),
-            },
-            BindGroupEntry {
-                binding: 2,
-                resource: uniform_buffer.as_entire_binding(),
+                resource: wgpu::BindingResource::Sampler(&texture.sampler),
             },
         ],
     })

@@ -56,6 +56,25 @@ impl Camera {
 
         OPENGL_TO_WGPU_MATRIX * proj * view
     }
+
+    pub fn build_skybox_projection_matrix(&self) -> cgmath::Matrix4<f32> {
+        let (sin_pitch, cos_pitch) = self.pitch.sin_cos();
+        let (sin_yaw, cos_yaw) = self.yaw.sin_cos();
+        let view = cgmath::Matrix4::look_to_rh(
+            cgmath::Point3::new(0.0, 0.0, 0.0),
+            cgmath::Vector3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(),
+            self.up,
+        );
+
+        let proj = cgmath::perspective(
+            cgmath::Deg(self.vertical_fov),
+            self.aspect,
+            self.z_near,
+            self.z_far,
+        );
+
+        OPENGL_TO_WGPU_MATRIX * proj * view
+    }
 }
 
 impl Default for Camera {
