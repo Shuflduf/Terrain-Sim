@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 
 use cgmath::Point3;
@@ -13,7 +14,7 @@ mod chunk;
 mod skybox;
 mod water;
 
-const MAX_CHUNKS_PER_FRAME: usize = 4;
+const MAX_CHUNKS_PER_FRAME: usize = 2;
 const RENDER_DISTANCE_RADIUS: u32 = 16;
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
 const CHUNK_SIZE: usize = 128;
@@ -25,6 +26,7 @@ pub struct Terrain {
     noises: Vec<(FastNoiseLite, f32)>,
     water: Water,
     skybox: Skybox,
+    rendered_chunk_count: Cell<usize>,
 }
 
 impl Terrain {
@@ -55,6 +57,7 @@ impl Terrain {
             noises,
             water,
             skybox,
+            rendered_chunk_count: Cell::new(0),
         }
     }
 
@@ -117,14 +120,27 @@ impl Terrain {
     }
 
     pub fn draw(&self, render_pass: &mut RenderPass, frustum: &Frustum) {
+        let mut count = 0;
         self.chunks
             .iter()
             .filter(|(pos, _)| frustum.intersects_aabb(Self::chunk_aabb(**pos)))
-            .for_each(|(_, chunk)| chunk.draw(render_pass));
+            .for_each(|(_, chunk)| {
+                chunk.draw(render_pass);
+                count += 1;
+            });
+        self.rendered_chunk_count.set(count);
     }
 
     pub fn draw_water(&self, render_pass: &mut RenderPass) {
         self.water.draw(render_pass);
+    }
+
+    pub fn chunk_count(&self) -> usize {
+        self.chunks.len()
+    }
+
+    pub fn rendered_chunk_count(&self) -> usize {
+        self.rendered_chunk_count.get()
     }
 
     pub fn draw_skybox(&self, render_pass: &mut RenderPass) {

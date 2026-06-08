@@ -26,7 +26,7 @@ pub struct GpuContext {
     window: Arc<Window>,
     is_surface_configured: bool,
 
-    renderer: Renderer,
+    pub renderer: Renderer,
 }
 
 impl GpuContext {
@@ -35,9 +35,9 @@ impl GpuContext {
         let surface = create_surface(&instance, &window)?;
         let adapter = request_adapter(&instance, &surface).await?;
         let (device, queue) = request_device(&adapter).await?;
-        let config = create_config(&surface, &adapter, &window);
+        let config = create_config(&surface, &adapter, &window, false);
         let assets = Assets::new(&device, &queue);
-        let renderer = Renderer::new(&device, &config, camera, &assets)?;
+        let renderer = Renderer::new(&device, &queue, &config, camera, &assets)?;
 
         Ok(Self {
             surface,
@@ -58,6 +58,8 @@ impl GpuContext {
             self.is_surface_configured = true;
             self.renderer.depth_texture =
                 Texture::create_depth_texture(&self.device, &self.config, "Depth Texture");
+            self.renderer
+                .resize_text_overlay(&self.device, &self.queue, &self.config);
         }
     }
 
@@ -97,8 +99,20 @@ impl GpuContext {
                 });
 
         self.renderer.set_time(time);
-        self.renderer
-            .draw(&mut encoder, &view, terrain, &self.queue);
+        self.renderer.prepare_overlay(
+            &self.device,
+            &self.queue,
+            self.config.width,
+            self.config.height,
+        );
+        self.renderer.draw(
+            &mut encoder,
+            &view,
+            terrain,
+            &self.queue,
+            self.config.width,
+            self.config.height,
+        );
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())

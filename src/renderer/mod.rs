@@ -15,6 +15,7 @@ use crate::{
         pipeline::create_render_pipeline,
         skybox_bind_group::{create_skybox_bind_group, create_skybox_bind_group_layout},
         skybox_pipeline::create_skybox_pipeline,
+        text::TextOverlay,
         texture::Texture,
         water_bind_group::{create_water_bind_group, create_water_bind_group_layout},
         water_pipeline::create_water_pipeline,
@@ -32,6 +33,7 @@ mod layout;
 mod pipeline;
 mod skybox_bind_group;
 mod skybox_pipeline;
+pub mod text;
 pub mod texture;
 pub mod vertex;
 mod water_bind_group;
@@ -51,11 +53,16 @@ pub struct Renderer {
     water_buffer: Buffer,
     skybox_pipeline: RenderPipeline,
     skybox_bind_group: BindGroup,
+    text_overlay: TextOverlay,
+    pub fps: f32,
+    pub rendered_chunk_count: usize,
+    pub chunk_count: usize,
 }
 
 impl Renderer {
     pub fn new(
         device: &Device,
+        queue: &Queue,
         config: &SurfaceConfiguration,
         camera: &Camera,
         assets: &Assets,
@@ -105,6 +112,8 @@ impl Renderer {
             &camera_layout,
         );
 
+        let text_overlay = TextOverlay::new(device, queue, config);
+
         Ok(Self {
             depth_texture,
             render_pipeline,
@@ -118,6 +127,10 @@ impl Renderer {
             water_buffer,
             skybox_pipeline,
             skybox_bind_group,
+            text_overlay,
+            fps: 0.0,
+            rendered_chunk_count: 0,
+            chunk_count: 0,
         })
     }
 
@@ -134,12 +147,35 @@ impl Renderer {
         self.water_uniform.time = time;
     }
 
+    pub fn resize_text_overlay(
+        &mut self,
+        device: &Device,
+        queue: &Queue,
+        config: &SurfaceConfiguration,
+    ) {
+        self.text_overlay.resize(device, queue, config);
+    }
+
+    pub fn prepare_overlay(&mut self, device: &Device, queue: &Queue, width: u32, height: u32) {
+        self.text_overlay.prepare(
+            device,
+            queue,
+            width,
+            height,
+            self.fps,
+            self.chunk_count,
+            self.rendered_chunk_count,
+        );
+    }
+
     pub fn draw(
-        &self,
+        &mut self,
         encoder: &mut CommandEncoder,
         view: &TextureView,
         terrain: &Terrain,
         queue: &Queue,
+        _width: u32,
+        _height: u32,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
@@ -192,5 +228,24 @@ impl Renderer {
         terrain.draw_skybox(&mut render_pass);
 
         drop(render_pass);
+
+        let mut overlay_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Overlay Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        });
+        self.text_overlay.draw(&mut overlay_pass);
+        drop(overlay_pass);
     }
 }

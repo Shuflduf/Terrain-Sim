@@ -5,7 +5,7 @@ use crate::{
 };
 use winit::{
     application::ApplicationHandler,
-    event::{KeyEvent, MouseButton, WindowEvent},
+    event::{KeyEvent, MouseButton, MouseScrollDelta, WindowEvent},
     event_loop::ActiveEventLoop,
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
@@ -19,6 +19,8 @@ pub struct Application {
     camera_controller: CameraController,
     terrain: Option<Terrain>,
     start_time: Instant,
+    frame_count: u32,
+    fps_timer: Instant,
 }
 
 impl Application {
@@ -29,15 +31,24 @@ impl Application {
             camera_controller: CameraController::default(),
             terrain: None,
             start_time: Instant::now(),
+            frame_count: 0,
+            fps_timer: Instant::now(),
         }
     }
 
     fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
-        if code == KeyCode::Escape && is_pressed {
-            event_loop.exit();
-        } else {
-            self.camera_controller.handle_key(code, is_pressed);
+        if is_pressed {
+            match code {
+                KeyCode::Escape => {
+                    event_loop.exit();
+                }
+                KeyCode::KeyV => {
+                    Self::toggle_vsync();
+                }
+                _ => {}
+            }
         }
+        self.camera_controller.handle_key(code, is_pressed);
     }
 
     fn handle_mouse_button(&mut self, mouse_button: MouseButton) {
@@ -54,6 +65,10 @@ impl Application {
         {
             terrain.update(&ctx.device, &ctx.queue, &self.camera.eye);
         }
+    }
+
+    fn toggle_vsync() {
+        todo!()
     }
 }
 
@@ -93,9 +108,22 @@ impl ApplicationHandler<GpuContext> for Application {
             }
             WindowEvent::RedrawRequested => {
                 self.update();
+                self.frame_count += 1;
+                let elapsed = self.fps_timer.elapsed();
+                if elapsed.as_secs_f32() >= 0.5 {
+                    if let Some(ctx) = &mut self.gpu_context {
+                        ctx.renderer.fps = self.frame_count as f32 / elapsed.as_secs_f32();
+                    }
+                    self.frame_count = 0;
+                    self.fps_timer = Instant::now();
+                }
                 let time = self.start_time.elapsed().as_secs_f32();
                 if let Some(ctx) = &mut self.gpu_context {
                     ctx.update(&self.camera);
+                    if let Some(ref terrain) = self.terrain {
+                        ctx.renderer.rendered_chunk_count = terrain.rendered_chunk_count();
+                        ctx.renderer.chunk_count = terrain.chunk_count();
+                    }
                 }
                 match self
                     .gpu_context
@@ -132,8 +160,14 @@ impl ApplicationHandler<GpuContext> for Application {
         _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
-        if let winit::event::DeviceEvent::MouseMotion { delta } = event {
-            self.camera_controller.handle_mouse(delta.0, delta.1);
+        match event {
+            winit::event::DeviceEvent::MouseMotion { delta } => {
+                self.camera_controller.handle_mouse(delta.0, delta.1);
+            }
+            winit::event::DeviceEvent::MouseWheel { delta } => {
+                println!("{delta:?}")
+            }
+            _ => {}
         }
     }
 }
