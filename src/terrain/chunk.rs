@@ -86,22 +86,24 @@ fn compute_normal(height_map: &[f32], x_index: usize, z_index: usize) -> [f32; 3
 fn get_vertices(position: (i32, i32), height_map: &[f32]) -> Vec<Vertex> {
     let size = CHUNK_SIZE + 1;
     let mut vertices = vec![Vertex::default(); size * size];
-    for (x, row) in height_map.chunks(size).enumerate() {
-        for (z, tile) in row.iter().enumerate() {
-            let pos_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
-            let pos_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
-            let pos_y = *tile;
-            let u = pos_x / (TEXTURE_SCALE * CHUNK_SIZE as f32);
-            let v = pos_z / (TEXTURE_SCALE * CHUNK_SIZE as f32);
-            let normal = compute_normal(height_map, x, z);
 
-            vertices[x + z * size] = Vertex {
-                position: [pos_x, pos_y, pos_z],
-                tex_coords: [u, v],
-                normal,
-            }
-        }
-    }
+    vertices.par_iter_mut().enumerate().for_each(|(i, v)| {
+        let x = i % size;
+        let z = i / size;
+        let pos_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
+        let pos_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
+        let pos_y = height_map[x * size + z];
+        let u = pos_x / (TEXTURE_SCALE * CHUNK_SIZE as f32);
+        let v_ = pos_z / (TEXTURE_SCALE * CHUNK_SIZE as f32);
+        let normal = compute_normal(height_map, x, z);
+
+        *v = Vertex {
+            position: [pos_x, pos_y, pos_z],
+            tex_coords: [u, v_],
+            normal,
+        };
+    });
+
     vertices
 }
 
