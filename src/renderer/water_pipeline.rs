@@ -11,7 +11,6 @@ pub fn create_water_pipeline(
     shader: &ShaderModule,
     texture_layout: &BindGroupLayout,
     camera_layout: &BindGroupLayout,
-    depth_texture: &TextureView,
 ) -> RenderPipeline {
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Water Pipeline Layout"),

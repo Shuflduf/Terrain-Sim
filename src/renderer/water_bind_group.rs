@@ -1,5 +1,5 @@
 use wgpu::{
-    BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Device, Sampler,
+    BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer, Device, Sampler,
     ShaderStages, TextureView,
 };
 
@@ -23,6 +23,16 @@ pub fn create_water_bind_group_layout(device: &Device) -> BindGroupLayout {
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
+            BindGroupLayoutEntry {
+                binding: 2,
+                visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            },
         ],
     })
 }
@@ -32,6 +42,7 @@ pub fn create_water_bind_group(
     layout: &BindGroupLayout,
     texture: &TextureView,
     sampler: &Sampler,
+    uniform_buffer: &Buffer,
 ) -> BindGroup {
     device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("Water Bind Group"),
@@ -44,6 +55,10 @@ pub fn create_water_bind_group(
             BindGroupEntry {
                 binding: 1,
                 resource: wgpu::BindingResource::Sampler(sampler),
+            },
+            BindGroupEntry {
+                binding: 2,
+                resource: uniform_buffer.as_entire_binding(),
             },
         ],
     })

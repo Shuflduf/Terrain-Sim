@@ -67,7 +67,7 @@ impl GpuContext {
         self.renderer.update_camera(camera, &self.queue);
     }
 
-    pub fn render(&mut self, terrain: &Terrain) -> anyhow::Result<()> {
+    pub fn render(&mut self, terrain: &Terrain, time: f32) -> anyhow::Result<()> {
         self.window.request_redraw();
 
         if !self.is_surface_configured {
@@ -98,7 +98,8 @@ impl GpuContext {
                     label: Some("Render Encoder"),
                 });
 
-        self.renderer.draw(&mut encoder, &view, terrain);
+        self.renderer
+            .draw(&mut encoder, &view, terrain, &self.queue, time);
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())

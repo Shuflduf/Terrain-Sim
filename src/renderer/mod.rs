@@ -16,6 +16,7 @@ use crate::{
         texture::Texture,
         water_bind_group::{create_water_bind_group, create_water_bind_group_layout},
         water_pipeline::create_water_pipeline,
+        water_uniform::WaterUniform,
     },
     terrain::Terrain,
 };
@@ -30,6 +31,7 @@ pub mod texture;
 pub mod vertex;
 mod water_bind_group;
 mod water_pipeline;
+mod water_uniform;
 
 pub struct Renderer {
     pub depth_texture: Texture,
@@ -38,10 +40,10 @@ pub struct Renderer {
     camera_uniform: CameraUniform,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
-    blend_uniform: BlendUniform,
-    blend_buffer: Buffer,
     water_pipeline: RenderPipeline,
     water_bind_group: BindGroup,
+    water_uniform: WaterUniform,
+    water_buffer: Buffer,
 }
 
 impl Renderer {
@@ -73,13 +75,25 @@ impl Renderer {
             &depth_texture,
         );
 
+        let water_uniform = WaterUniform::default();
+        let water_buffer = water_uniform.create_buffer(device);
         let water_texture_layout = create_water_bind_group_layout(device);
         let water_texture = assets.texture("water");
+        let water_sampler = device.create_sampler(&wgpu::wgt::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::Repeat,
+            address_mode_v: wgpu::AddressMode::Repeat,
+            address_mode_w: wgpu::AddressMode::Repeat,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
         let water_bind_group = create_water_bind_group(
             device,
             &water_texture_layout,
             &water_texture.view,
-            &water_texture.sampler,
+            &water_sampler,
+            &water_buffer,
         );
         let water_shader = assets.shader("water");
         let water_pipeline = create_water_pipeline(
@@ -88,7 +102,6 @@ impl Renderer {
             water_shader,
             &water_texture_layout,
             &camera_layout,
-            &depth_texture.view,
         );
 
         Ok(Self {
@@ -98,10 +111,10 @@ impl Renderer {
             camera_buffer,
             depth_texture,
             camera_bind_group,
-            blend_uniform,
-            blend_buffer,
             water_pipeline,
             water_bind_group,
+            water_uniform,
+            water_buffer,
         })
     }
 
@@ -114,7 +127,14 @@ impl Renderer {
         );
     }
 
-    pub fn draw(&self, encoder: &mut CommandEncoder, view: &TextureView, terrain: &Terrain) {
+    pub fn draw(
+        &self,
+        encoder: &mut CommandEncoder,
+        view: &TextureView,
+        terrain: &Terrain,
+        queue: &Queue,
+        time: f32,
+    ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -147,6 +167,14 @@ impl Renderer {
         render_pass.set_bind_group(0, &self.terrain_bind_group, &[]);
         render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
         terrain.draw(&mut render_pass);
+
+        let mut updated_water_uniform = self.water_uniform;
+        updated_water_uniform.time = time;
+        queue.write_buffer(
+            &self.water_buffer,
+            0,
+            bytemuck::cast_slice(&[updated_water_uniform]),
+        );
 
         render_pass.set_pipeline(&self.water_pipeline);
         render_pass.set_bind_group(0, &self.water_bind_group, &[]);

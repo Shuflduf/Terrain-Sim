@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use crate::{
     camera::Camera, camera_controller::CameraController, gpu_context::GpuContext, terrain::Terrain,
@@ -18,6 +18,7 @@ pub struct Application {
     camera: Camera,
     camera_controller: CameraController,
     terrain: Option<Terrain>,
+    start_time: Instant,
 }
 
 impl Application {
@@ -27,6 +28,7 @@ impl Application {
             camera: Camera::default(),
             camera_controller: CameraController::default(),
             terrain: None,
+            start_time: Instant::now(),
         }
     }
 
@@ -86,6 +88,7 @@ impl ApplicationHandler<GpuContext> for Application {
             }
             WindowEvent::RedrawRequested => {
                 self.update();
+                let time = self.start_time.elapsed().as_secs_f32();
                 if let Some(ctx) = &mut self.gpu_context {
                     ctx.update(&self.camera);
                 }
@@ -93,7 +96,7 @@ impl ApplicationHandler<GpuContext> for Application {
                     .gpu_context
                     .as_mut()
                     .unwrap()
-                    .render(self.terrain.as_ref().unwrap())
+                    .render(self.terrain.as_ref().unwrap(), time)
                 {
                     Ok(()) => {}
                     Err(e) => {
