@@ -96,8 +96,9 @@ impl GpuContext {
                     label: Some("Render Encoder"),
                 });
 
+        self.renderer.set_time(time);
         self.renderer
-            .draw(&mut encoder, &view, terrain, &self.queue, time);
+            .draw(&mut encoder, &view, terrain, &self.queue);
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())

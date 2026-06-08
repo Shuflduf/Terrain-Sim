@@ -18,7 +18,7 @@ impl Frustum {
             distance: 0.0,
         }; 6];
 
-        for i in 0..6 {
+        for (i, plane) in planes.iter_mut().enumerate() {
             let sign = if i % 2 == 0 { 1.0 } else { -1.0 };
             let row = i / 2;
             let normal = Vector3::new(
@@ -29,7 +29,7 @@ impl Frustum {
             let distance = m[3][3] + m[3][row] * sign;
             let inv_len = 1.0 / normal.magnitude();
 
-            planes[i] = Plane {
+            *plane = Plane {
                 normal: normal * inv_len,
                 distance: distance * inv_len,
             }

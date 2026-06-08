@@ -20,5 +20,13 @@ version = "0.24"
 default-features = false
 features = ["jpeg", "png"]
 
+[lints.clippy]
+correctness = "warn"
+perf = "warn"
+
 [profile.release]
+opt-level = 3
 strip = true
+lto = "fat"
+panic = "abort"
+codegen-units = 1

@@ -11,7 +11,6 @@ use crate::{
         camera_bind_group::create_camera_bind_group,
         camera_buffer::{CameraUniform, create_camera_buffer},
         diffuse::create_terrain_bind_group,
-        frustum::Frustum,
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
         skybox_bind_group::{create_skybox_bind_group, create_skybox_bind_group_layout},
@@ -131,13 +130,16 @@ impl Renderer {
         );
     }
 
+    pub fn set_time(&mut self, time: f32) {
+        self.water_uniform.time = time;
+    }
+
     pub fn draw(
         &self,
         encoder: &mut CommandEncoder,
         view: &TextureView,
         terrain: &Terrain,
         queue: &Queue,
-        time: f32,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
@@ -173,12 +175,10 @@ impl Renderer {
         let frustum = &self.camera_uniform.frustum();
         terrain.draw(&mut render_pass, frustum);
 
-        let mut updated_water_uniform = self.water_uniform;
-        updated_water_uniform.time = time;
         queue.write_buffer(
             &self.water_buffer,
             0,
-            bytemuck::cast_slice(&[updated_water_uniform]),
+            bytemuck::cast_slice(&[self.water_uniform]),
         );
 
         render_pass.set_pipeline(&self.water_pipeline);

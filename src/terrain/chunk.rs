@@ -1,8 +1,7 @@
-use cgmath::Point3;
 use fastnoise_lite::FastNoiseLite;
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use wgpu::{
-    Buffer, BufferUsages, Device, RenderPass, TexelCopyBufferInfo,
+    Buffer, BufferUsages, Device, RenderPass,
     util::{BufferInitDescriptor, DeviceExt},
 };
 
