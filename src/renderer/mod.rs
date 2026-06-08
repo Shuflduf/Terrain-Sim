@@ -14,6 +14,8 @@ use crate::{
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
         texture::Texture,
+        water_bind_group::{create_water_bind_group, create_water_bind_group_layout},
+        water_pipeline::create_water_pipeline,
     },
     terrain::Terrain,
 };
@@ -26,6 +28,8 @@ mod layout;
 mod pipeline;
 pub mod texture;
 pub mod vertex;
+mod water_bind_group;
+mod water_pipeline;
 
 pub struct Renderer {
     pub depth_texture: Texture,
@@ -36,6 +40,8 @@ pub struct Renderer {
     camera_bind_group: BindGroup,
     blend_uniform: BlendUniform,
     blend_buffer: Buffer,
+    water_pipeline: RenderPipeline,
+    water_bind_group: BindGroup,
 }
 
 impl Renderer {
@@ -67,6 +73,24 @@ impl Renderer {
             &depth_texture,
         );
 
+        let water_texture_layout = create_water_bind_group_layout(device);
+        let water_texture = assets.texture("water");
+        let water_bind_group = create_water_bind_group(
+            device,
+            &water_texture_layout,
+            &water_texture.view,
+            &water_texture.sampler,
+        );
+        let water_shader = assets.shader("water");
+        let water_pipeline = create_water_pipeline(
+            device,
+            config,
+            water_shader,
+            &water_texture_layout,
+            &camera_layout,
+            &depth_texture.view,
+        );
+
         Ok(Self {
             render_pipeline,
             terrain_bind_group,
@@ -76,6 +100,8 @@ impl Renderer {
             camera_bind_group,
             blend_uniform,
             blend_buffer,
+            water_pipeline,
+            water_bind_group,
         })
     }
 
@@ -121,6 +147,11 @@ impl Renderer {
         render_pass.set_bind_group(0, &self.terrain_bind_group, &[]);
         render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
         terrain.draw(&mut render_pass);
+
+        render_pass.set_pipeline(&self.water_pipeline);
+        render_pass.set_bind_group(0, &self.water_bind_group, &[]);
+        render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
+        terrain.draw_water(&mut render_pass);
 
         drop(render_pass);
     }

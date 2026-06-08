@@ -30,8 +30,8 @@ fn vs_main(
     let world_pos = vec3<f32>(
         model.position.x + model.translation.x,
         model.position.y,
-        model.position.z + model.translation.z,
-    )
+        model.position.z + model.translation.y,
+    );
     out.clip_position = camera.view_proj * vec4<f32>(world_pos, 1.0);
     out.normal = model.normal;
     return out;
@@ -47,6 +47,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     let color = textureSample(water_texture, water_sampler, in.tex_coords);
 
-    return vec4<f32>(color.rgb * brightness, 0.4);
+    return vec4<f32>(color.rgb * brightness, 0.7);
 }
 

@@ -4,12 +4,12 @@ use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
 };
 
-use crate::renderer::vertex::Vertex;
+use crate::{
+    renderer::vertex::Vertex,
+    terrain::{CHUNK_SIZE, IndicesArr, VerticesArr},
+};
 
-const CHUNK_SIZE: usize = 32;
 type HeightMapArr = [[f32; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
-type VerticesArr = [Vertex; (CHUNK_SIZE + 1).pow(2)];
-type IndicesArr = [u16; CHUNK_SIZE.pow(2) * 6];
 
 pub(crate) struct Chunk {
     position: (i32, i32),

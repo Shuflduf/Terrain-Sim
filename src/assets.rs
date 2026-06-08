@@ -64,9 +64,10 @@ impl Assets {
         // load_texture!("sand", "sand.png");
         // load_texture!("stone", "stone.png");
         // load_texture!("snow", "snow.png");
-        load_texture!("water", "snow.png");
+        load_texture!("water", "water.png");
 
         load_shader!("main", "main.wgsl");
+        load_shader!("water", "water.wgsl");
 
         Self {
             textures,
