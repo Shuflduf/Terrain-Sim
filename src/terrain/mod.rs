@@ -5,7 +5,7 @@ use crate::terrain::chunk::Chunk;
 
 mod chunk;
 
-const NOISE_VALUES: [(f32, f32); 3] = [(8.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
+const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
 
 pub struct Terrain {
     chunks: Vec<Chunk>,

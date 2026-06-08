@@ -17,6 +17,7 @@ use crate::{
     terrain::Terrain,
 };
 
+mod blend_uniform;
 mod camera_bind_group;
 mod camera_buffer;
 mod diffuse;

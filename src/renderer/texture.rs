@@ -1,5 +1,6 @@
 use anyhow::{Ok, Result};
 use image::GenericImageView;
+use wgpu::{TexelCopyTextureInfoBase, TextureUsages, naga::ResourceBinding};
 
 pub struct Texture {
     #[allow(unused)]
@@ -121,5 +122,80 @@ impl Texture {
             view,
             sampler,
         }
+    }
+
+    pub fn create_texture_array(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        images: &[image::DynamicImage],
+        label: &str,
+    ) -> anyhow::Result<Self> {
+        let layer_count = images.len() as u32;
+
+        let (width, height) = images[0].dimensions();
+
+        let texture = device.create_texture(&wgpu::wgt::TextureDescriptor {
+            label: Some(label),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: layer_count,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+
+        for (i, img) in images.iter().enumerate() {
+            let rgba = img.to_rgba8();
+
+            queue.write_texture(
+                wgpu::TexelCopyTextureInfo {
+                    texture: &texture,
+                    mip_level: 0,
+                    aspect: wgpu::TextureAspect::All,
+                    origin: wgpu::Origin3d {
+                        x: 0,
+                        y: 0,
+                        z: i as u32,
+                    },
+                },
+                &rgba,
+                wgpu::TexelCopyBufferLayout {
+                    offset: 0,
+                    bytes_per_row: Some(4 * width),
+                    rows_per_image: Some(height),
+                },
+                wgpu::Extent3d {
+                    width,
+                    height,
+                    depth_or_array_layers: 1,
+                },
+            );
+        }
+
+        let view = texture.create_view(&wgpu::wgt::TextureViewDescriptor {
+            dimension: Some(wgpu::TextureViewDimension::D2Array),
+            ..Default::default()
+        });
+
+        let sampler = device.create_sampler(&wgpu::wgt::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
+
+        Ok(Self {
+            texture,
+            view,
+            sampler,
+        })
     }
 }
