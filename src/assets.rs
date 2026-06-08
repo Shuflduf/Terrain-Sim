@@ -65,6 +65,7 @@ impl Assets {
         // load_texture!("stone", "stone.png");
         // load_texture!("snow", "snow.png");
         load_texture!("water", "water.png");
+        load_texture!("skybox", "skybox.png");
 
         load_shader!("main", "main.wgsl");
         load_shader!("water", "water.wgsl");
