@@ -49,6 +49,11 @@ impl Application {
 
     fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
+        if let Some(ref mut terrain) = self.terrain
+            && let Some(ref ctx) = self.gpu_context
+        {
+            terrain.update(&ctx.device, &self.camera.eye);
+        }
     }
 }
 

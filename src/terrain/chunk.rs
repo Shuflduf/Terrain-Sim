@@ -12,7 +12,6 @@ use crate::{
 type HeightMapArr = [[f32; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
 
 pub(crate) struct Chunk {
-    position: (i32, i32),
     vertex_buffer: Buffer,
     index_buffer: Buffer,
 }
@@ -25,7 +24,6 @@ impl Chunk {
         let (vertex_buffer, index_buffer) = create_mesh(device, vertices, indices);
 
         Self {
-            position,
             vertex_buffer,
             index_buffer,
         }

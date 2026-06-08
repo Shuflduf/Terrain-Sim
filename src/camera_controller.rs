@@ -89,7 +89,7 @@ impl CameraController {
 impl Default for CameraController {
     fn default() -> Self {
         Self {
-            speed: 0.5,
+            speed: 1.0,
             mouse_control: false,
             mouse_sensitivity: 0.002,
             mouse_delta: (0.0, 0.0),
