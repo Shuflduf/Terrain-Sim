@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use wgpu::{Buffer, BufferUsages, Device, RenderPass, util::DeviceExt};
+use wgpu::{Buffer, BufferUsages, Device, Queue, RenderPass, util::DeviceExt};
 
 use crate::{
     renderer::vertex::{InstanceData, Vertex},
@@ -17,7 +17,7 @@ pub struct Water {
 }
 
 impl Water {
-    pub fn new(device: &Device) -> Self {
+    pub fn new(device: &Device, max_instances: usize) -> Self {
         let vertices = Self::create_vertices();
         let indices = Self::create_indices();
 
@@ -31,10 +31,10 @@ impl Water {
             contents: bytemuck::cast_slice(&indices),
             usage: BufferUsages::INDEX,
         });
-        let instance_buffer = device.create_buffer(&wgpu::wgt::BufferDescriptor {
+        let instance_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Water Instance buffer"),
-            size: 1,
-            usage: BufferUsages::VERTEX,
+            size: (max_instances * size_of::<InstanceData>()) as u64,
+            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
@@ -83,22 +83,19 @@ impl Water {
         indices
     }
 
-    pub fn update_instance_buffer(
-        &mut self,
-        device: &Device,
-        chunk_positions: &HashSet<(i32, i32)>,
-    ) {
+    pub fn update_instance_buffer(&mut self, queue: &Queue, chunk_positions: &HashSet<(i32, i32)>) {
         let instances: Vec<InstanceData> = chunk_positions
             .iter()
             .map(|&(x, z)| InstanceData {
                 translation: [x as f32 * CHUNK_SIZE as f32, z as f32 * CHUNK_SIZE as f32],
             })
             .collect();
-        self.instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Water Instance Buffer"),
-            contents: bytemuck::cast_slice(&instances),
-            usage: BufferUsages::VERTEX,
-        });
+        queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&instances));
+        // self.instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        //     label: Some("Water Instance Buffer"),
+        //     contents: bytemuck::cast_slice(&instances),
+        //     usage: BufferUsages::VERTEX,
+        // });
         self.instance_count = instances.len() as u32;
     }
 

@@ -52,7 +52,7 @@ impl Application {
         if let Some(ref mut terrain) = self.terrain
             && let Some(ref ctx) = self.gpu_context
         {
-            terrain.update(&ctx.device, &self.camera.eye);
+            terrain.update(&ctx.device, &ctx.queue, &self.camera.eye);
         }
     }
 }

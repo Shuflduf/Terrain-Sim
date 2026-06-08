@@ -21,8 +21,8 @@ mod surface;
 pub struct GpuContext {
     pub config: SurfaceConfiguration,
     pub device: Device,
+    pub queue: Queue,
     surface: Surface<'static>,
-    queue: Queue,
     window: Arc<Window>,
     is_surface_configured: bool,
 

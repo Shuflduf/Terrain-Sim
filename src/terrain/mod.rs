@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use cgmath::Point3;
 use fastnoise_lite::{FastNoiseLite, NoiseType};
-use wgpu::{Device, RenderPass};
+use wgpu::{Device, Queue, RenderPass};
 
 use crate::{
     renderer::{frustum::Frustum, vertex::Vertex},
@@ -47,7 +47,8 @@ impl Terrain {
             chunks.insert(pos, Chunk::new(device, &noises, pos));
         }
 
-        let water = Water::new(device);
+        let max_instances = (RENDER_DISTANCE_RADIUS as usize * 2 + 1).pow(2);
+        let water = Water::new(device, max_instances);
         let skybox = Skybox::new(device);
 
         Self {
@@ -93,7 +94,12 @@ impl Terrain {
         )
     }
 
-    pub fn update(&mut self, device: &Device, camera_position: &cgmath::Point3<f32>) {
+    pub fn update(
+        &mut self,
+        device: &Device,
+        queue: &Queue,
+        camera_position: &cgmath::Point3<f32>,
+    ) {
         let camera_chunk_x = (camera_position.x / CHUNK_SIZE as f32).floor() as i32;
         let camera_chunk_z = (camera_position.z / CHUNK_SIZE as f32).floor() as i32;
         let positions = Self::chunk_positions_in_radius(camera_chunk_x, camera_chunk_z);
@@ -109,7 +115,7 @@ impl Terrain {
             self.chunks
                 .insert(pos, Chunk::new(device, &self.noises, pos));
         }
-        self.water.update_instance_buffer(device, &positions);
+        self.water.update_instance_buffer(queue, &positions);
     }
 
     pub fn draw(&self, render_pass: &mut RenderPass, frustum: &Frustum) {
