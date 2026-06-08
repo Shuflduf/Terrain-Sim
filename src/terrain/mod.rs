@@ -13,6 +13,7 @@ mod chunk;
 mod skybox;
 mod water;
 
+const MAX_CHUNKS_PER_FRAME: usize = 8;
 const RENDER_DISTANCE_RADIUS: u32 = 16;
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
 const CHUNK_SIZE: usize = 64;
@@ -22,6 +23,7 @@ type IndicesArr = [u16; CHUNK_SIZE.pow(2) * 6];
 
 pub struct Terrain {
     chunks: HashMap<(i32, i32), Chunk>,
+    pending_chunks: Vec<(i32, i32)>,
     noises: Vec<(FastNoiseLite, f32)>,
     water: Water,
     skybox: Skybox,
@@ -50,6 +52,7 @@ impl Terrain {
 
         Self {
             chunks,
+            pending_chunks: vec![],
             noises,
             water,
             skybox,
@@ -95,11 +98,16 @@ impl Terrain {
         let camera_chunk_z = (camera_position.z / CHUNK_SIZE as f32).floor() as i32;
         let positions = Self::chunk_positions_in_radius(camera_chunk_x, camera_chunk_z);
         self.chunks.retain(|pos, _| positions.contains(pos));
-        for pos in &positions {
-            if !self.chunks.contains_key(pos) {
-                self.chunks
-                    .insert(*pos, Chunk::new(device, &self.noises, *pos));
-            }
+        self.pending_chunks.clear();
+        self.pending_chunks.extend(
+            positions
+                .iter()
+                .filter(|pos| !self.chunks.contains_key(pos)),
+        );
+        let count = MAX_CHUNKS_PER_FRAME.min(self.pending_chunks.len());
+        for pos in self.pending_chunks.drain(..count) {
+            self.chunks
+                .insert(pos, Chunk::new(device, &self.noises, pos));
         }
         self.water.update_instance_buffer(device, &positions);
     }

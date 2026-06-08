@@ -1,5 +1,6 @@
 use cgmath::Point3;
 use fastnoise_lite::FastNoiseLite;
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use wgpu::{
     Buffer, BufferUsages, Device, RenderPass, TexelCopyBufferInfo,
     util::{BufferInitDescriptor, DeviceExt},
@@ -40,13 +41,13 @@ impl Chunk {
 fn create_heightmap(noises: &[(FastNoiseLite, f32)], position: (i32, i32)) -> HeightMapArr {
     let mut height_map = [[0.0; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
 
-    for (x, row) in height_map.iter_mut().enumerate().take(CHUNK_SIZE + 1) {
+    height_map.par_iter_mut().enumerate().for_each(|(x, row)| {
         for (z, tile) in row.iter_mut().enumerate().take(CHUNK_SIZE + 1) {
             let sample_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
             let sample_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
             *tile = sample_noises(noises, sample_x, sample_z);
         }
-    }
+    });
     height_map
 }
 
