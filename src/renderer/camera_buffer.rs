@@ -1,7 +1,7 @@
 use cgmath::SquareMatrix;
 use wgpu::{Buffer, Device, util::DeviceExt};
 
-use crate::camera::Camera;
+use crate::{camera::Camera, renderer::frustum::Frustum};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -23,6 +23,10 @@ impl CameraUniform {
     pub fn update_view_proj(&mut self, camera: &Camera) {
         self.view_projection = camera.build_view_projection_matrix().into();
         self.skybox_projection = camera.build_skybox_projection_matrix().into();
+    }
+
+    pub fn frustum(&self) -> Frustum {
+        Frustum::from_view_projection(&self.view_projection)
     }
 }
 

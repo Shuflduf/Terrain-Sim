@@ -1,10 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
+use cgmath::Point3;
 use fastnoise_lite::{FastNoiseLite, NoiseType};
 use wgpu::{Device, RenderPass};
 
 use crate::{
-    renderer::vertex::Vertex,
+    renderer::{frustum::Frustum, vertex::Vertex},
     terrain::{chunk::Chunk, skybox::Skybox, water::Water},
 };
 
@@ -74,6 +75,20 @@ impl Terrain {
         positions
     }
 
+    pub fn chunk_aabb(chunk_pos: (i32, i32)) -> (Point3<f32>, Point3<f32>) {
+        let max_noise_height: f32 = NOISE_VALUES.iter().map(|(amplitude, _)| amplitude).sum();
+        let x = chunk_pos.0 as f32 * CHUNK_SIZE as f32;
+        let z = chunk_pos.1 as f32 * CHUNK_SIZE as f32;
+        (
+            Point3::new(x, -max_noise_height, z),
+            Point3::new(
+                x + CHUNK_SIZE as f32,
+                max_noise_height,
+                z + CHUNK_SIZE as f32,
+            ),
+        )
+    }
+
     pub fn update(&mut self, device: &Device, camera_position: &cgmath::Point3<f32>) {
         let camera_chunk_x = (camera_position.x / CHUNK_SIZE as f32).floor() as i32;
         let camera_chunk_z = (camera_position.z / CHUNK_SIZE as f32).floor() as i32;
@@ -88,10 +103,11 @@ impl Terrain {
         self.water.update_instance_buffer(device, &positions);
     }
 
-    pub fn draw(&self, render_pass: &mut RenderPass) {
+    pub fn draw(&self, render_pass: &mut RenderPass, frustum: &Frustum) {
         self.chunks
-            .values()
-            .for_each(|chunk| chunk.draw(render_pass));
+            .iter()
+            .filter(|(pos, _)| frustum.intersects_aabb(Self::chunk_aabb(**pos)))
+            .for_each(|(_, chunk)| chunk.draw(render_pass));
     }
 
     pub fn draw_water(&self, render_pass: &mut RenderPass) {

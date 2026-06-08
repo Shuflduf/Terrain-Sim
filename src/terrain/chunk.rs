@@ -1,3 +1,4 @@
+use cgmath::Point3;
 use fastnoise_lite::FastNoiseLite;
 use wgpu::{
     Buffer, BufferUsages, Device, RenderPass,

@@ -11,6 +11,7 @@ use crate::{
         camera_bind_group::create_camera_bind_group,
         camera_buffer::{CameraUniform, create_camera_buffer},
         diffuse::create_terrain_bind_group,
+        frustum::Frustum,
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
         skybox_bind_group::{create_skybox_bind_group, create_skybox_bind_group_layout},
@@ -27,7 +28,7 @@ mod blend_uniform;
 mod camera_bind_group;
 mod camera_buffer;
 mod diffuse;
-mod frustum;
+pub mod frustum;
 mod layout;
 mod pipeline;
 mod skybox_bind_group;
@@ -169,7 +170,8 @@ impl Renderer {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, &self.terrain_bind_group, &[]);
         render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
-        terrain.draw(&mut render_pass);
+        let frustum = &self.camera_uniform.frustum();
+        terrain.draw(&mut render_pass, frustum);
 
         let mut updated_water_uniform = self.water_uniform;
         updated_water_uniform.time = time;
