@@ -13,11 +13,11 @@ mod chunk;
 mod skybox;
 mod water;
 
-const MAX_CHUNKS_PER_FRAME: usize = 8;
+const MAX_CHUNKS_PER_FRAME: usize = 4;
 const RENDER_DISTANCE_RADIUS: u32 = 16;
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
-const CHUNK_SIZE: usize = 64;
-const TEXTURE_SCALE: f32 = 0.5;
+const CHUNK_SIZE: usize = 128;
+const TEXTURE_SCALE: f32 = 0.25;
 type VerticesArr = [Vertex; (CHUNK_SIZE + 1).pow(2)];
 type IndicesArr = [u16; CHUNK_SIZE.pow(2) * 6];
 

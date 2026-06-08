@@ -13,6 +13,8 @@ pub struct CameraController {
     is_backward_pressed: bool,
     is_left_pressed: bool,
     is_right_pressed: bool,
+    is_up_pressed: bool,
+    is_down_pressed: bool,
 
     mouse_control: bool,
     mouse_sensitivity: f32,
@@ -36,6 +38,14 @@ impl CameraController {
             }
             KeyCode::KeyD | KeyCode::ArrowRight => {
                 self.is_right_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyE => {
+                self.is_up_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyQ => {
+                self.is_down_pressed = is_pressed;
                 true
             }
             _ => false,
@@ -69,7 +79,9 @@ impl CameraController {
             camera.yaw.sin() * camera.pitch.cos(),
         )
         .normalize();
-        let right = forward.cross(camera.up);
+        let right = Vector3::new(-camera.yaw.sin(), 0.0, camera.yaw.cos()).normalize();
+
+        let up = right.cross(forward);
 
         if self.is_forward_pressed {
             camera.eye += forward * self.speed;
@@ -82,6 +94,12 @@ impl CameraController {
         }
         if self.is_right_pressed {
             camera.eye += right * self.speed;
+        }
+        if self.is_up_pressed {
+            camera.eye += up * self.speed;
+        }
+        if self.is_down_pressed {
+            camera.eye -= up * self.speed;
         }
     }
 }
@@ -97,6 +115,8 @@ impl Default for CameraController {
             is_backward_pressed: false,
             is_left_pressed: false,
             is_right_pressed: false,
+            is_up_pressed: false,
+            is_down_pressed: false,
         }
     }
 }
