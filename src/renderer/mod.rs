@@ -7,9 +7,10 @@ use crate::{
     assets::Assets,
     camera::Camera,
     renderer::{
+        blend_uniform::BlendUniform,
         camera_bind_group::create_camera_bind_group,
         camera_buffer::{CameraUniform, create_camera_buffer},
-        diffuse::create_diffuse_bind_group,
+        diffuse::create_terrain_bind_group,
         layout::create_texture_bind_group_layout,
         pipeline::create_render_pipeline,
         texture::Texture,
@@ -29,10 +30,12 @@ pub mod vertex;
 pub struct Renderer {
     pub depth_texture: Texture,
     render_pipeline: RenderPipeline,
-    diffuse_bind_group: BindGroup,
+    terrain_bind_group: BindGroup,
     camera_uniform: CameraUniform,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
+    blend_uniform: BlendUniform,
+    blend_buffer: Buffer,
 }
 
 impl Renderer {
@@ -43,9 +46,17 @@ impl Renderer {
         assets: &Assets,
     ) -> anyhow::Result<Self> {
         let texture_layout = create_texture_bind_group_layout(device);
-        let diffuse_bind_group = create_diffuse_bind_group(device, &texture_layout, assets)?;
+
+        let blend_uniform = BlendUniform::default();
+        let blend_buffer = blend_uniform.create_buffer(device);
+
+        let terrain_texture = assets.terrain_texture();
+        let terrain_bind_group =
+            create_terrain_bind_group(device, &texture_layout, terrain_texture, &blend_buffer)?;
+
         let (camera_uniform, camera_buffer) = create_camera_buffer(device, camera);
         let (camera_bind_group, camera_layout) = create_camera_bind_group(device, &camera_buffer);
+
         let depth_texture = Texture::create_depth_texture(device, config, "Depth Texture");
         let render_pipeline = create_render_pipeline(
             device,
@@ -58,11 +69,13 @@ impl Renderer {
 
         Ok(Self {
             render_pipeline,
-            diffuse_bind_group,
+            terrain_bind_group,
             camera_uniform,
             camera_buffer,
             depth_texture,
             camera_bind_group,
+            blend_uniform,
+            blend_buffer,
         })
     }
 
@@ -105,7 +118,7 @@ impl Renderer {
             multiview_mask: None,
         });
         render_pass.set_pipeline(&self.render_pipeline);
-        render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+        render_pass.set_bind_group(0, &self.terrain_bind_group, &[]);
         render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
         terrain.draw(&mut render_pass);
 

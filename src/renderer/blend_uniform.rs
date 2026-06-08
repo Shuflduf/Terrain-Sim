@@ -3,8 +3,9 @@ use wgpu::{Buffer, BufferUsages, Device, util::DeviceExt};
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct BlendUniform {
-    pub thresholds: [f32; 3],
-    pub blend_widths: [f32; 3],
+    // 4 instead of 3 to align to 16 bytes
+    thresholds: [f32; 4],
+    blend_widths: [f32; 4],
 }
 
 impl BlendUniform {
@@ -20,8 +21,8 @@ impl BlendUniform {
 impl Default for BlendUniform {
     fn default() -> Self {
         Self {
-            thresholds: [2.0, 12.0, 20.0],
-            blend_widths: [4.0, 4.0, 4.0],
+            thresholds: [-6.0, 0.0, 10.0, 0.0],
+            blend_widths: [4.0, 4.0, 4.0, 0.0],
         }
     }
 }
