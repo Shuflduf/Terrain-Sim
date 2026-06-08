@@ -74,7 +74,7 @@ impl Default for Camera {
             aspect: 1.0,
             vertical_fov: 45.0,
             z_near: 0.1,
-            z_far: 1000.0,
+            z_far: 1500.0,
         }
     }
 }

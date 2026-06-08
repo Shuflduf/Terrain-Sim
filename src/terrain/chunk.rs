@@ -1,13 +1,13 @@
 use cgmath::Point3;
 use fastnoise_lite::FastNoiseLite;
 use wgpu::{
-    Buffer, BufferUsages, Device, RenderPass,
+    Buffer, BufferUsages, Device, RenderPass, TexelCopyBufferInfo,
     util::{BufferInitDescriptor, DeviceExt},
 };
 
 use crate::{
     renderer::vertex::Vertex,
-    terrain::{CHUNK_SIZE, IndicesArr, VerticesArr},
+    terrain::{CHUNK_SIZE, IndicesArr, TEXTURE_SCALE, VerticesArr},
 };
 
 type HeightMapArr = [[f32; CHUNK_SIZE + 1]; CHUNK_SIZE + 1];
@@ -88,8 +88,8 @@ fn get_vertices(position: (i32, i32), height_map: HeightMapArr) -> VerticesArr {
             let pos_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
             let pos_z = (position.1 as f32) * (CHUNK_SIZE as f32) + (z as f32);
             let pos_y = *tile;
-            let u = x as f32 / CHUNK_SIZE as f32;
-            let v = z as f32 / CHUNK_SIZE as f32;
+            let u = pos_x / (TEXTURE_SCALE * CHUNK_SIZE as f32);
+            let v = pos_z / (TEXTURE_SCALE * CHUNK_SIZE as f32);
             let normal = compute_normal(&height_map, x, z);
 
             vertices[x + z * (CHUNK_SIZE + 1)] = Vertex {
