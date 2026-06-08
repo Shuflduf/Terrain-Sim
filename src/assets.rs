@@ -60,10 +60,11 @@ impl Assets {
                 .unwrap();
 
         load_texture!("frog", "frog.png");
-        load_texture!("grass", "grass.png");
-        load_texture!("sand", "sand.png");
-        load_texture!("stone", "stone.png");
-        load_texture!("snow", "snow.png");
+        // load_texture!("grass", "grass.png");
+        // load_texture!("sand", "sand.png");
+        // load_texture!("stone", "stone.png");
+        // load_texture!("snow", "snow.png");
+        load_texture!("water", "snow.png");
 
         load_shader!("main", "main.wgsl");
 
