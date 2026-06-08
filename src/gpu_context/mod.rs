@@ -27,7 +27,6 @@ pub struct GpuContext {
     is_surface_configured: bool,
 
     renderer: Renderer,
-    assets: Assets,
 }
 
 impl GpuContext {
@@ -48,7 +47,6 @@ impl GpuContext {
             window,
             is_surface_configured: false,
             renderer,
-            assets,
         })
     }
 
@@ -59,7 +57,7 @@ impl GpuContext {
             self.surface.configure(&self.device, &self.config);
             self.is_surface_configured = true;
             self.renderer.depth_texture =
-                Texture::create_depth_texture(&self.device, &self.config, "Depth Texture")
+                Texture::create_depth_texture(&self.device, &self.config, "Depth Texture");
         }
     }
 

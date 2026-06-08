@@ -27,6 +27,7 @@ mod blend_uniform;
 mod camera_bind_group;
 mod camera_buffer;
 mod diffuse;
+mod frustum;
 mod layout;
 mod pipeline;
 mod skybox_bind_group;
@@ -105,11 +106,11 @@ impl Renderer {
         );
 
         Ok(Self {
+            depth_texture,
             render_pipeline,
             terrain_bind_group,
             camera_uniform,
             camera_buffer,
-            depth_texture,
             camera_bind_group,
             water_pipeline,
             water_bind_group,

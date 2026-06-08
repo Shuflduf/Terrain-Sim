@@ -1,13 +1,9 @@
-use std::{
-    collections::{HashMap, HashSet},
-    f32::consts::PI,
-};
+use std::collections::{HashMap, HashSet};
 
 use fastnoise_lite::{FastNoiseLite, NoiseType};
 use wgpu::{Device, RenderPass};
 
 use crate::{
-    camera,
     renderer::vertex::Vertex,
     terrain::{chunk::Chunk, skybox::Skybox, water::Water},
 };
@@ -36,7 +32,7 @@ impl Terrain {
             let mut noise = FastNoiseLite::with_seed(seed + i as i32);
             noise.set_noise_type(Some(NoiseType::Perlin));
             noise.set_frequency(Some(*frequency));
-            noises.push((noise, *amplitude))
+            noises.push((noise, *amplitude));
         }
 
         let camera_chunk_x: i32 = 0;
@@ -84,7 +80,7 @@ impl Terrain {
         let positions = Self::chunk_positions_in_radius(camera_chunk_x, camera_chunk_z);
         self.chunks.retain(|pos, _| positions.contains(pos));
         for pos in &positions {
-            if !self.chunks.contains_key(&pos) {
+            if !self.chunks.contains_key(pos) {
                 self.chunks
                     .insert(*pos, Chunk::new(device, &self.noises, *pos));
             }

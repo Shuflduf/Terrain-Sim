@@ -1,6 +1,6 @@
 use wgpu::{
     BindGroupLayout, BlendState, ColorWrites, Device, FragmentState, PipelineCompilationOptions,
-    RenderPipeline, ShaderModule, SurfaceConfiguration, TextureView,
+    RenderPipeline, SurfaceConfiguration,
 };
 
 use crate::{

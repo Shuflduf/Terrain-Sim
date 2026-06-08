@@ -1,11 +1,11 @@
 use wgpu::{
     BindGroupLayout, BlendState, ColorWrites, Device, FragmentState, PipelineCompilationOptions,
-    RenderPipeline, ShaderModule, SurfaceConfiguration, TextureView,
+    RenderPipeline, SurfaceConfiguration,
 };
 
 use crate::{
     assets::Assets,
-    renderer::vertex::{InstanceData, Vertex},
+    renderer::vertex::Vertex,
 };
 
 pub fn create_skybox_pipeline(

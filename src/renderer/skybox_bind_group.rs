@@ -1,6 +1,6 @@
 use wgpu::{
-    BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Buffer, Device, Sampler,
-    ShaderStages, TextureView,
+    BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, Device,
+    ShaderStages,
 };
 
 use crate::assets::Assets;

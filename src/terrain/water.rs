@@ -48,8 +48,8 @@ impl Water {
 
     fn create_vertices() -> VerticesArr {
         let mut vertices = [Vertex::default(); (CHUNK_SIZE + 1).pow(2)];
-        for x in 0..(CHUNK_SIZE + 1) {
-            for z in 0..(CHUNK_SIZE + 1) {
+        for x in 0..=CHUNK_SIZE {
+            for z in 0..=CHUNK_SIZE {
                 vertices[x + z * (CHUNK_SIZE + 1)] = Vertex {
                     position: [x as f32, WATER_LEVEL, z as f32],
                     tex_coords: [x as f32 / CHUNK_SIZE as f32, z as f32 / CHUNK_SIZE as f32],
