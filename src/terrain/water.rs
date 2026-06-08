@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use wgpu::{Buffer, BufferUsages, Device, RenderPass, util::DeviceExt};
 
 use crate::{
@@ -5,7 +7,7 @@ use crate::{
     terrain::{CHUNK_SIZE, IndicesArr, VerticesArr},
 };
 
-const WATER_LEVEL: f32 = -7.0;
+const WATER_LEVEL: f32 = -5.0;
 
 pub struct Water {
     vertex_buffer: Buffer,
@@ -18,7 +20,6 @@ impl Water {
     pub fn new(device: &Device) -> Self {
         let vertices = Self::create_vertices();
         let indices = Self::create_indices();
-        let instances = Self::create_instances();
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Water Vertex Buffer"),
@@ -30,17 +31,18 @@ impl Water {
             contents: bytemuck::cast_slice(&indices),
             usage: BufferUsages::INDEX,
         });
-        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Water Instance Buffer"),
-            contents: bytemuck::cast_slice(&instances),
+        let instance_buffer = device.create_buffer(&wgpu::wgt::BufferDescriptor {
+            label: Some("Water Instance buffer"),
+            size: 1,
             usage: BufferUsages::VERTEX,
+            mapped_at_creation: false,
         });
 
         Self {
             vertex_buffer,
             index_buffer,
             instance_buffer,
-            instance_count: instances.len() as u32,
+            instance_count: 0,
         }
     }
 
@@ -81,17 +83,23 @@ impl Water {
         indices
     }
 
-    // todo: make this array instead of vec maybe
-    fn create_instances() -> Vec<InstanceData> {
-        let mut instances = Vec::with_capacity(20 * 20);
-        for x in -10..10 {
-            for z in -10..10 {
-                instances.push(InstanceData {
-                    translation: [x as f32 * CHUNK_SIZE as f32, z as f32 * CHUNK_SIZE as f32],
-                })
-            }
-        }
-        instances
+    pub fn update_instance_buffer(
+        &mut self,
+        device: &Device,
+        chunk_positions: &HashSet<(i32, i32)>,
+    ) {
+        let instances: Vec<InstanceData> = chunk_positions
+            .iter()
+            .map(|&(x, z)| InstanceData {
+                translation: [x as f32 * CHUNK_SIZE as f32, z as f32 * CHUNK_SIZE as f32],
+            })
+            .collect();
+        self.instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Water Instance Buffer"),
+            contents: bytemuck::cast_slice(&instances),
+            usage: BufferUsages::VERTEX,
+        });
+        self.instance_count = instances.len() as u32;
     }
 
     pub fn draw(&self, render_pass: &mut RenderPass) {

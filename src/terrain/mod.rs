@@ -83,12 +83,13 @@ impl Terrain {
         let camera_chunk_z = (camera_position.z / CHUNK_SIZE as f32).floor() as i32;
         let positions = Self::chunk_positions_in_radius(camera_chunk_x, camera_chunk_z);
         self.chunks.retain(|pos, _| positions.contains(pos));
-        for pos in positions {
+        for pos in &positions {
             if !self.chunks.contains_key(&pos) {
                 self.chunks
-                    .insert(pos, Chunk::new(device, &self.noises, pos));
+                    .insert(*pos, Chunk::new(device, &self.noises, *pos));
             }
         }
+        self.water.update_instance_buffer(device, &positions);
     }
 
     pub fn draw(&self, render_pass: &mut RenderPass) {

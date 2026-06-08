@@ -11,7 +11,7 @@ use winit::{
     window::Window,
 };
 
-const SEED: i32 = 20;
+const SEED: i32 = 0;
 
 pub struct Application {
     gpu_context: Option<GpuContext>,
@@ -62,7 +62,7 @@ impl ApplicationHandler<GpuContext> for Application {
         let window_attributes = Window::default_attributes();
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         let size = window.inner_size();
-        self.camera = Camera::new(size.width as f32, size.height as f32);
+        self.camera.aspect = size.width as f32 / size.height as f32;
         self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
         self.terrain = Some(Terrain::new(
             &self.gpu_context.as_ref().unwrap().device,

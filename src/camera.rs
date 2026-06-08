@@ -21,19 +21,6 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(width: f32, height: f32) -> Self {
-        Self {
-            eye: (0.0, 0.0, 4.0).into(),
-            yaw: Rad(-FRAC_PI_2),
-            pitch: Rad(0.0),
-            up: cgmath::Vector3::unit_y(),
-            aspect: width / height,
-            vertical_fov: 45.0,
-            z_near: 0.1,
-            z_far: 1000.0,
-        }
-    }
-
     pub fn resize(&mut self, width: f32, height: f32) {
         self.aspect = width / height;
     }
@@ -79,6 +66,15 @@ impl Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Self::new(1000.0, 1000.0)
+        Self {
+            eye: (0.0, 10.0, 4.0).into(),
+            yaw: Rad(-FRAC_PI_2),
+            pitch: Rad(0.0),
+            up: cgmath::Vector3::unit_y(),
+            aspect: 1.0,
+            vertical_fov: 45.0,
+            z_near: 0.1,
+            z_far: 1000.0,
+        }
     }
 }
