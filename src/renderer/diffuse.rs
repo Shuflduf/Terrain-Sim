@@ -1,25 +1,28 @@
-use wgpu::{BindGroup, BindGroupLayout, Device};
+use wgpu::{BindGroup, BindGroupEntry, BindGroupLayout, BindingResource, Buffer, Device};
 
-use crate::assets::Assets;
+use crate::renderer::texture::Texture;
 
-pub fn create_diffuse_bind_group(
+pub fn create_terrain_bind_group(
     device: &Device,
     layout: &BindGroupLayout,
-    assets: &Assets,
+    terrain_texture: &Texture,
+    blend_buffer: &Buffer,
 ) -> anyhow::Result<BindGroup> {
-    let diffuse_texture = assets.texture("grass");
-
     Ok(device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout,
         label: Some("Diffuse Bind Group"),
         entries: &[
-            wgpu::BindGroupEntry {
+            BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                resource: BindingResource::TextureView(&terrain_texture.view),
             },
-            wgpu::BindGroupEntry {
+            BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                resource: BindingResource::Sampler(&terrain_texture.sampler),
+            },
+            BindGroupEntry {
+                binding: 2,
+                resource: blend_buffer.as_entire_binding(),
             },
         ],
     }))

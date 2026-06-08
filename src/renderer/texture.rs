@@ -1,6 +1,6 @@
 use anyhow::{Ok, Result};
 use image::GenericImageView;
-use wgpu::{TexelCopyTextureInfoBase, TextureUsages, naga::ResourceBinding};
+use wgpu::TextureUsages;
 
 pub struct Texture {
     #[allow(unused)]
@@ -177,12 +177,12 @@ impl Texture {
             );
         }
 
-        let view = texture.create_view(&wgpu::wgt::TextureViewDescriptor {
+        let view = texture.create_view(&wgpu::TextureViewDescriptor {
             dimension: Some(wgpu::TextureViewDimension::D2Array),
             ..Default::default()
         });
 
-        let sampler = device.create_sampler(&wgpu::wgt::SamplerDescriptor {
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,

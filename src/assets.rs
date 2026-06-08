@@ -6,12 +6,24 @@ use wgpu::{Device, Queue, ShaderModule};
 pub struct Assets {
     textures: HashMap<&'static str, Texture>,
     shaders: HashMap<&'static str, ShaderModule>,
+    terrain_texture: Texture,
 }
 
 impl Assets {
     pub fn new(device: &Device, queue: &Queue) -> Self {
         let mut textures = HashMap::new();
         let mut shaders = HashMap::new();
+
+        macro_rules! load_image {
+            ($path:expr) => {{
+                let bytes = include_bytes!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/assets/images/",
+                    $path
+                ));
+                image::load_from_memory(bytes).unwrap()
+            }};
+        }
 
         macro_rules! load_texture {
             ($name:expr, $path:expr) => {
@@ -37,6 +49,16 @@ impl Assets {
             };
         }
 
+        let terrain_images = vec![
+            load_image!("sand.png"),
+            load_image!("grass.png"),
+            load_image!("stone.png"),
+            load_image!("snow.png"),
+        ];
+        let terrain_texture =
+            Texture::create_texture_array(device, queue, &terrain_images, "Terrain Texture Array")
+                .unwrap();
+
         load_texture!("frog", "frog.png");
         load_texture!("grass", "grass.png");
         load_texture!("sand", "sand.png");
@@ -45,7 +67,11 @@ impl Assets {
 
         load_shader!("main", "main.wgsl");
 
-        Self { textures, shaders }
+        Self {
+            textures,
+            shaders,
+            terrain_texture,
+        }
     }
 
     pub fn texture(&self, name: &str) -> &Texture {
@@ -58,5 +84,9 @@ impl Assets {
         self.shaders
             .get(name)
             .unwrap_or_else(|| panic!("Shader `{name}` not found"))
+    }
+
+    pub fn terrain_texture(&self) -> &Texture {
+        &self.terrain_texture
     }
 }
