@@ -19,7 +19,7 @@ jobs:
       - name: Check version and release status
         id: check
         run: |
-          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml)
+          version=$(sed -n '/^\[package\]/,/^\[/p' Cargo.toml | sed -n 's/^version = "\([^"]*\)"/\1/p')
           echo "version=$version" >> $GITHUB_OUTPUT
           
           latest_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
