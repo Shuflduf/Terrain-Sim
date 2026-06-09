@@ -2,6 +2,9 @@
 name = "terrain-sim"
 version = "0.1.0"
 edition = "2024"
+description = "Simple 3D terrain generator and renderer using WebGPU"
+repository = "https://github.com/Shuflduf/Terrain-Simulator"
+license = "GPL-3.0-or-later"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
