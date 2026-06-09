@@ -42,15 +42,34 @@ jobs:
     strategy:
       matrix:
         include:
+          # Linux x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             asset_suffix: linux-x86_64
+          # Linux ARM64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset_suffix: linux-arm64
+          # Linux ARM 32-bit
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            asset_suffix: linux-armv7
+          # Windows x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             asset_suffix: windows-x86_64.exe
+          # Windows ARM64
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            asset_suffix: windows-arm64.exe
+          # macOS x86_64
           - os: macos-latest
             target: x86_64-apple-darwin
             asset_suffix: macos-x86_64
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_suffix: macos-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +79,16 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install cross (for cross-compilation)
+        if: startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.target, 'aarch64') || startsWith(matrix.target, 'armv7'))
+        run: cargo install cross
+
       - name: Build release binary
+        if: startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.target, 'aarch64') || startsWith(matrix.target, 'armv7'))
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Build release binary
+        if: ${{ !( startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.target, 'aarch64') || startsWith(matrix.target, 'armv7')) ) }}
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Prepare asset
@@ -97,5 +125,5 @@ jobs:
       - name: Publish to crates.io
         run: |
           cargo login ${{ secrets.CRATES_IO }}
-          cargo publish
+          cargo publish --allow-dirty
           rm -f ~/.cargo/credentials
