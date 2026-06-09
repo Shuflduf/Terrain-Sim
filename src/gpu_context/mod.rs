@@ -22,7 +22,7 @@ pub struct GpuContext {
     pub config: SurfaceConfiguration,
     pub device: Device,
     pub queue: Queue,
-    surface: Surface<'static>,
+    pub surface: Surface<'static>,
     window: Arc<Window>,
     is_surface_configured: bool,
 

@@ -1,5 +1,5 @@
 use glyphon::*;
-use wgpu::{Device, Queue, RenderPass, SurfaceConfiguration};
+use wgpu::{Device, PresentMode, Queue, RenderPass, SurfaceConfiguration};
 
 pub struct TextOverlay {
     font_system: FontSystem,
@@ -45,6 +45,7 @@ impl TextOverlay {
         fps: f32,
         chunk_count: usize,
         rendered_chunks: usize,
+        vsync_mode: PresentMode,
     ) {
         self.viewport.update(queue, Resolution { width, height });
 
@@ -54,9 +55,15 @@ impl TextOverlay {
             Some(height as f32),
         );
 
+        let vsync_text = match vsync_mode {
+            PresentMode::AutoVsync => "On",
+            PresentMode::AutoNoVsync => "Off",
+            _ => "Other",
+        };
+
         self.buffer.set_text(
             &mut self.font_system,
-            &format!("FPS: {fps:.0}\nChunks: {chunk_count}\nRendered: {rendered_chunks}"),
+            &format!("FPS: {fps:.0}\nChunks: {chunk_count}\nRendered: {rendered_chunks}\nVsync (V): {vsync_text}"),
             &cosmic_text::Attrs::new(),
             cosmic_text::Shaping::Advanced,
             None,

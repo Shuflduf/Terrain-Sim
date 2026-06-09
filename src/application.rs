@@ -3,6 +3,7 @@ use std::{sync::Arc, time::Instant};
 use crate::{
     camera::Camera, camera_controller::CameraController, gpu_context::GpuContext, terrain::Terrain,
 };
+use wgpu::PresentMode;
 use winit::{
     application::ApplicationHandler,
     event::{KeyEvent, MouseButton, MouseScrollDelta, WindowEvent},
@@ -21,6 +22,7 @@ pub struct Application {
     start_time: Instant,
     frame_count: u32,
     fps_timer: Instant,
+    vsync_mode: PresentMode,
 }
 
 impl Application {
@@ -33,6 +35,7 @@ impl Application {
             start_time: Instant::now(),
             frame_count: 0,
             fps_timer: Instant::now(),
+            vsync_mode: PresentMode::AutoVsync,
         }
     }
 
@@ -43,7 +46,7 @@ impl Application {
                     event_loop.exit();
                 }
                 KeyCode::KeyV => {
-                    Self::toggle_vsync();
+                    self.toggle_vsync();
                 }
                 _ => {}
             }
@@ -67,8 +70,12 @@ impl Application {
         }
     }
 
-    fn toggle_vsync() {
-        todo!()
+    fn toggle_vsync(&mut self) {
+        if let Some(ctx) = &mut self.gpu_context {
+            ctx.config.present_mode = other_vsync_mode(ctx.config.present_mode);
+            ctx.surface.configure(&ctx.device, &ctx.config);
+            self.vsync_mode = ctx.config.present_mode;
+        }
     }
 }
 
@@ -123,6 +130,7 @@ impl ApplicationHandler<GpuContext> for Application {
                     if let Some(ref terrain) = self.terrain {
                         ctx.renderer.rendered_chunk_count = terrain.rendered_chunk_count();
                         ctx.renderer.chunk_count = terrain.chunk_count();
+                        ctx.renderer.vsync_mode = self.vsync_mode;
                     }
                 }
                 match self
@@ -169,5 +177,13 @@ impl ApplicationHandler<GpuContext> for Application {
             }
             _ => {}
         }
+    }
+}
+
+fn other_vsync_mode(current_mode: PresentMode) -> PresentMode {
+    if current_mode == PresentMode::AutoVsync {
+        PresentMode::AutoNoVsync
+    } else {
+        PresentMode::AutoVsync
     }
 }

@@ -1,6 +1,6 @@
 use wgpu::{
-    BindGroup, Buffer, CommandEncoder, Device, Queue, RenderPipeline, SurfaceConfiguration,
-    TextureView,
+    BindGroup, Buffer, CommandEncoder, Device, PresentMode, Queue, RenderPipeline,
+    SurfaceConfiguration, TextureView,
 };
 
 use crate::{
@@ -57,6 +57,7 @@ pub struct Renderer {
     pub fps: f32,
     pub rendered_chunk_count: usize,
     pub chunk_count: usize,
+    pub vsync_mode: PresentMode,
 }
 
 impl Renderer {
@@ -131,6 +132,7 @@ impl Renderer {
             fps: 0.0,
             rendered_chunk_count: 0,
             chunk_count: 0,
+            vsync_mode: PresentMode::AutoVsync,
         })
     }
 
@@ -165,6 +167,7 @@ impl Renderer {
             self.fps,
             self.chunk_count,
             self.rendered_chunk_count,
+            self.vsync_mode,
         );
     }
 

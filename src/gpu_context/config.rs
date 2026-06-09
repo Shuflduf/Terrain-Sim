@@ -16,18 +16,13 @@ pub fn create_config(
         .find(|f| f.is_srgb())
         .copied()
         .unwrap_or(surface_caps.formats[0]);
-    let present_mode = if vsync {
-        PresentMode::FifoRelaxed
-    } else {
-        PresentMode::Immediate
-    };
 
     wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         format: surface_format,
         width: window.inner_size().width,
         height: window.inner_size().height,
-        present_mode,
+        present_mode: PresentMode::AutoNoVsync,
         alpha_mode: surface_caps.alpha_modes[0],
         view_formats: vec![],
         desired_maximum_frame_latency: 2,
