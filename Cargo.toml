@@ -1,0 +1,64 @@
+[package]
+name = "terrain-sim"
+version = "0.1.4"
+edition = "2024"
+description = "Simple 3D terrain generator and renderer using WebGPU"
+repository = "https://github.com/Shuflduf/Terrain-Simulator"
+license = "GPL-3.0-or-later"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = "1.0"
+bytemuck = { version = "1.25.0", features = ["derive"] }
+cgmath = "0.18.0"
+fastnoise-lite = "1.1.1"
+fontdb = "0.23"
+glyphon = "0.10.0"
+log = "0.4"
+pollster = "0.3"
+rand = "0.8"
+web-time = "1.0"
+wgpu = "28.0"
+winit = { version = "0.30", features = ["android-native-activity"] }
+
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["jpeg", "png"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.10"
+rayon = "1.12.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
+getrandom = { version = "0.2", features = ["js"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.30"
+wgpu = { version = "28.0", features = ["webgl"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3"
+features = [
+  "Document",
+  "Element",
+  "HtmlCanvasElement",
+  "Window",
+]
+
+[lints.clippy]
+correctness = "warn"
+perf = "warn"
+
+[profile.release]
+opt-level = 3
+strip = true
+lto = "fat"
+panic = "abort"
+codegen-units = 1

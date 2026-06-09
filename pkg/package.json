@@ -1,0 +1,21 @@
+{
+  "name": "terrain-sim",
+  "type": "module",
+  "description": "Simple 3D terrain generator and renderer using WebGPU",
+  "version": "0.1.4",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shuflduf/Terrain-Simulator"
+  },
+  "files": [
+    "terrain_sim_bg.wasm",
+    "terrain_sim.js",
+    "terrain_sim.d.ts"
+  ],
+  "main": "terrain_sim.js",
+  "types": "terrain_sim.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
