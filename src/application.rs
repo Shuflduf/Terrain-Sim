@@ -12,9 +12,16 @@ use winit::{
     window::Window,
 };
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use winit::platform::web::EventLoopExtWebSys;
+
 const SEED: i32 = 0;
 
 pub struct Application {
+    #[cfg(target_arch = "wasm32")]
+    proxy: Option<winit::event_loop::EventLoopProxy<GpuContext>>,
     gpu_context: Option<GpuContext>,
     camera: Camera,
     camera_controller: CameraController,
@@ -26,8 +33,12 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new() -> Self {
+    pub fn new(#[cfg(target_arch = "wasm32")] event_loop: &EventLoop<GpuContext>) -> Self {
+        #[cfg(target_arch = "wasm32")]
+        let proxy = Some(event_loop.create_proxy());
         Self {
+            #[cfg(target_arch = "wasm32")]
+            proxy,
             gpu_context: None,
             camera: Camera::default(),
             camera_controller: CameraController::default(),
@@ -81,18 +92,70 @@ impl Application {
 
 impl ApplicationHandler<GpuContext> for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let window_attributes = Window::default_attributes();
+        #[allow(unused_mut)]
+        let mut window_attributes = Window::default_attributes();
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use wasm_bindgen::JsCast;
+            use winit::platform::web::WindowAttributesExtWebSys;
+
+            const CANVAS_ID: &str = "canvas";
+
+            let window = wgpu::web_sys::window().unwrap_throw();
+            let document = window.document().unwrap_throw();
+            let canvas = document.get_element_by_id(CANVAS_ID).unwrap_throw();
+            let html_canvas_element = canvas.unchecked_into();
+            window_attributes = window_attributes.with_canvas(Some(html_canvas_element));
+        }
+
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         let size = window.inner_size();
         self.camera.aspect = size.width as f32 / size.height as f32;
-        self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
         self.terrain = Some(Terrain::new(
             &self.gpu_context.as_ref().unwrap().device,
             SEED,
         ));
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // If we are not on web we can use pollster to
+            // await the window creation
+            self.gpu_context =
+                Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Run the future asynchronously and use the
+            // proxy to send the results to the event loop
+            if let Some(proxy) = self.proxy.take() {
+                wasm_bindgen_futures::spawn_local(async move {
+                    assert!(
+                        proxy
+                            .send_event(
+                                GpuContext::new(window, &self.camera)
+                                    .await
+                                    .expect("Unable to create canvas!!!")
+                            )
+                            .is_ok()
+                    )
+                });
+            }
+        }
+
+        // self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            event.window.request_redraw();
+            event.resize(
+                event.window.inner_size().width,
+                event.window.inner_size().height,
+            );
+        }
         self.gpu_context = Some(event);
     }
 
