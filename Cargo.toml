@@ -1,6 +1,6 @@
 [package]
 name = "terrain-sim"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Simple 3D terrain generator and renderer using WebGPU"
 repository = "https://github.com/Shuflduf/Terrain-Simulator"
