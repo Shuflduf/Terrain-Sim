@@ -3,6 +3,9 @@ name = "terrain-sim"
 version = "0.1.0"
 edition = "2024"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -11,23 +14,23 @@ anyhow = "1.0"
 bytemuck = { version = "1.25.0", features = ["derive"] }
 cgmath = "0.18.0"
 fastnoise-lite = "1.1.1"
-rand = "0.8"
 fontdb = "0.23"
 glyphon = "0.10.0"
-web-time = "1.0"
 log = "0.4"
 pollster = "0.3"
+rand = "0.8"
+web-time = "1.0"
 wgpu = "28.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-env_logger = "0.10"
-rayon = "1.12.0"
 
 [dependencies.image]
 version = "0.24"
 default-features = false
 features = ["jpeg", "png"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.10"
+rayon = "1.12.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
@@ -45,9 +48,6 @@ features = [
   "HtmlCanvasElement",
   "Window",
 ]
-
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
 
 [lints.clippy]
 correctness = "warn"
