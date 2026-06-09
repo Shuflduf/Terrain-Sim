@@ -1,6 +1,8 @@
 # Terrain Simulator
 Terrain generator and renderer using WebGPU
 
+[Terrain Simulator Demo Video](https://github.com/user-attachments/assets/332c39e9-dc6c-416e-b587-687fe61205a3)
+
 # Features
 - Free camera controls
 - Normal based lighting
