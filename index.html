@@ -18,14 +18,24 @@
       width: 100vw;
       height: 100vh;
     }
+
+    h1 {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%);
+      position: absolute;
+      color: white;
+    }
   </style>
 </head>
 
 <body>
+  <h1>Loading, please be patient!</h1>
   <canvas id="canvas"></canvas>
   <script type="module">
     import init from "./pkg/terrain_sim.js";
     init().then(() => {
+      document.querySelectorAll('h1').forEach(h1 => h1.remove());
       console.log("WASM Loaded");
     });
   </script>
