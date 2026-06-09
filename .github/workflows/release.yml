@@ -85,11 +85,11 @@ jobs:
 
       - name: Build release binary
         if: startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.target, 'aarch64') || startsWith(matrix.target, 'armv7'))
-        run: cross build --release --target ${{ matrix.target }}
+        run: cross build --release --target ${{ matrix.target }} --bin terrain-sim
 
       - name: Build release binary
         if: ${{ !( startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.target, 'aarch64') || startsWith(matrix.target, 'armv7')) ) }}
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --bin terrain-sim
 
       - name: Prepare asset
         shell: bash
@@ -148,8 +148,14 @@ jobs:
       - name: Build WASM
         run: wasm-pack build --target web
 
+      - name: Prepare deploy folder
+        run: |
+          mkdir -p deploy
+          cp -r pkg deploy/
+          cp index.html deploy/
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: ./deploy
