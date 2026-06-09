@@ -35,7 +35,7 @@ impl GpuContext {
         let surface = create_surface(&instance, &window)?;
         let adapter = request_adapter(&instance, &surface).await?;
         let (device, queue) = request_device(&adapter).await?;
-        let config = create_config(&surface, &adapter, &window, false);
+        let config = create_config(&surface, &adapter, &window);
         let assets = Assets::new(&device, &queue);
         let renderer = Renderer::new(&device, &queue, &config, camera, &assets)?;
 
@@ -116,6 +116,11 @@ impl GpuContext {
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
         Ok(())
+    }
+
+    #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+    pub fn window(&self) -> &Arc<Window> {
+        &self.window
     }
 
     pub fn lock_mouse(&self, lock: bool) {

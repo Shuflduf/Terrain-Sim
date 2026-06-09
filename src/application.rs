@@ -6,16 +6,16 @@ use crate::{
 use wgpu::PresentMode;
 use winit::{
     application::ApplicationHandler,
-    event::{KeyEvent, MouseButton, MouseScrollDelta, WindowEvent},
+    event::{KeyEvent, MouseButton, WindowEvent},
     event_loop::ActiveEventLoop,
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };
 
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::UnwrapThrowExt;
 #[cfg(target_arch = "wasm32")]
-use winit::platform::web::EventLoopExtWebSys;
+use winit::event_loop::EventLoop;
 
 const SEED: i32 = 0;
 
@@ -129,12 +129,13 @@ impl ApplicationHandler<GpuContext> for Application {
         {
             // Run the future asynchronously and use the
             // proxy to send the results to the event loop
+            let camera = self.camera;
             if let Some(proxy) = self.proxy.take() {
                 wasm_bindgen_futures::spawn_local(async move {
                     assert!(
                         proxy
                             .send_event(
-                                GpuContext::new(window, &self.camera)
+                                GpuContext::new(window, &camera)
                                     .await
                                     .expect("Unable to create canvas!!!")
                             )
@@ -147,14 +148,14 @@ impl ApplicationHandler<GpuContext> for Application {
         // self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
     }
 
-    fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: GpuContext) {
+    #[allow(unused_mut)]
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut event: GpuContext) {
         #[cfg(target_arch = "wasm32")]
         {
-            event.window.request_redraw();
-            event.resize(
-                event.window.inner_size().width,
-                event.window.inner_size().height,
-            );
+            let window = event.window();
+            window.request_redraw();
+            let size = window.inner_size();
+            event.resize(size.width, size.height);
         }
         self.gpu_context = Some(event);
     }

@@ -36,6 +36,7 @@ impl TextOverlay {
         self.atlas = TextAtlas::new(device, queue, &self.cache, config.format);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn prepare(
         &mut self,
         device: &Device,

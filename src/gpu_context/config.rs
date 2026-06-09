@@ -7,7 +7,6 @@ pub fn create_config(
     surface: &Surface,
     adapter: &Adapter,
     window: &Arc<Window>,
-    vsync: bool,
 ) -> wgpu::wgt::SurfaceConfiguration<Vec<wgpu::TextureFormat>> {
     let surface_caps = surface.get_capabilities(adapter);
     let surface_format = surface_caps

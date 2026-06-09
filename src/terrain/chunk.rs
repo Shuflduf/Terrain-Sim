@@ -1,5 +1,4 @@
 use fastnoise_lite::FastNoiseLite;
-use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use wgpu::{
     Buffer, BufferUsages, Device, RenderPass,
     util::{BufferInitDescriptor, DeviceExt},
@@ -35,11 +34,27 @@ impl Chunk {
     }
 }
 
+fn for_each_par_or_seq<T, F>(slice: &mut [T], f: F)
+where
+    T: Send,
+    F: Fn(usize, &mut T) + Send + Sync,
+{
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        use rayon::prelude::*;
+        slice.par_iter_mut().enumerate().for_each(|(i, v)| f(i, v));
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        slice.iter_mut().enumerate().for_each(|(i, v)| f(i, v));
+    }
+}
+
 fn create_heightmap(noises: &[(FastNoiseLite, f32)], position: (i32, i32)) -> Vec<f32> {
     let size = CHUNK_SIZE + 1;
     let mut height_map = vec![0.0f32; size * size];
 
-    height_map.par_iter_mut().enumerate().for_each(|(i, tile)| {
+    for_each_par_or_seq(&mut height_map, |i, tile| {
         let x = i / size;
         let z = i % size;
         let sample_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);
@@ -87,7 +102,7 @@ fn get_vertices(position: (i32, i32), height_map: &[f32]) -> Vec<Vertex> {
     let size = CHUNK_SIZE + 1;
     let mut vertices = vec![Vertex::default(); size * size];
 
-    vertices.par_iter_mut().enumerate().for_each(|(i, v)| {
+    for_each_par_or_seq(&mut vertices, |i, v| {
         let x = i % size;
         let z = i / size;
         let pos_x = (position.0 as f32) * (CHUNK_SIZE as f32) + (x as f32);

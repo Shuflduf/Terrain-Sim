@@ -1,7 +1,7 @@
 use std::f32::consts::FRAC_PI_2;
 
 use cgmath::{Angle, InnerSpace, Rad, Vector3};
-use winit::{event::MouseScrollDelta, keyboard::KeyCode};
+use winit::keyboard::KeyCode;
 
 use crate::camera::Camera;
 
@@ -56,6 +56,7 @@ impl CameraController {
         self.mouse_delta = (self.mouse_delta.0 + dx, self.mouse_delta.1 - dy);
     }
 
+    #[allow(dead_code)]
     pub fn handle_mouse_wheel(&mut self, delta: f32) {
         println!("{delta}");
         self.speed += delta;
