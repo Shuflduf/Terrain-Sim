@@ -11,6 +11,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.25.0", features = ["derive"] }
 cgmath = "0.18.0"
 fastnoise-lite = "1.1.1"
+rand = "0.8"
 fontdb = "0.23"
 glyphon = "0.10.0"
 web-time = "1.0"
@@ -31,6 +32,7 @@ features = ["jpeg", "png"]
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
+getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4.30"
 wgpu = { version = "28.0", features = ["webgl"] }

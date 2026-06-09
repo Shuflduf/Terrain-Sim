@@ -70,10 +70,19 @@ impl TextOverlay {
             _ => "Other",
         };
         let chunk_count = chunk_count.min(727);
+        let lines = [
+            format!("FPS: {fps:.0}"),
+            format!("Chunks: {chunk_count}"),
+            format!("Rendered: {rendered_chunks}"),
+            format!("Vsync (V): {vsync_text}"),
+            "Horizontal: WASD".into(),
+            "Vertical: Q & E".into(),
+            "Camera: LMB".into(),
+        ];
 
         self.buffer.set_text(
             &mut self.font_system,
-            &format!("FPS: {fps:.0}\nChunks: {chunk_count}\nRendered: {rendered_chunks}\nVsync (V): {vsync_text}"),
+            &lines.join("\n"),
             &cosmic_text::Attrs::new(),
             cosmic_text::Shaping::Advanced,
             None,

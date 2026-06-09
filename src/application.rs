@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use rand::Rng;
 use web_time::Instant;
 
 use crate::{
@@ -18,8 +19,6 @@ use wasm_bindgen::UnwrapThrowExt;
 #[cfg(target_arch = "wasm32")]
 use winit::event_loop::EventLoop;
 
-const SEED: i32 = 0;
-
 pub struct Application {
     #[cfg(target_arch = "wasm32")]
     proxy: Option<winit::event_loop::EventLoopProxy<GpuContext>>,
@@ -27,6 +26,7 @@ pub struct Application {
     camera: Camera,
     camera_controller: CameraController,
     terrain: Option<Terrain>,
+    seed: i32,
     start_time: Instant,
     frame_count: u32,
     fps_timer: Instant,
@@ -44,6 +44,7 @@ impl Application {
             camera: Camera::default(),
             camera_controller: CameraController::default(),
             terrain: None,
+            seed: rand::thread_rng().r#gen(),
             start_time: Instant::now(),
             frame_count: 0,
             fps_timer: Instant::now(),
@@ -120,7 +121,7 @@ impl ApplicationHandler<GpuContext> for Application {
                 Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
             self.terrain = Some(Terrain::new(
                 &self.gpu_context.as_ref().unwrap().device,
-                SEED,
+                self.seed,
             ));
         }
 
@@ -151,7 +152,7 @@ impl ApplicationHandler<GpuContext> for Application {
             window.request_redraw();
             let size = window.inner_size();
             event.resize(size.width, size.height);
-            self.terrain = Some(Terrain::new(&event.device, SEED));
+            self.terrain = Some(Terrain::new(&event.device, self.seed));
         }
         self.gpu_context = Some(event);
     }

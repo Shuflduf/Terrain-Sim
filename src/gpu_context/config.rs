@@ -21,7 +21,7 @@ pub fn create_config(
         format: surface_format,
         width: window.inner_size().width,
         height: window.inner_size().height,
-        present_mode: PresentMode::AutoNoVsync,
+        present_mode: PresentMode::AutoVsync,
         alpha_mode: surface_caps.alpha_modes[0],
         view_formats: vec![],
         desired_maximum_frame_latency: 2,
