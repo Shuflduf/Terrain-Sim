@@ -13,7 +13,15 @@ pub struct TextOverlay {
 
 impl TextOverlay {
     pub fn new(device: &Device, queue: &Queue, config: &SurfaceConfiguration) -> Self {
-        let mut font_system = FontSystem::new();
+        let mut db = fontdb::Database::new();
+        db.load_font_data(
+            include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/assets/fonts/DejaVuSans.ttf"
+            ))
+            .to_vec(),
+        );
+        let mut font_system = FontSystem::new_with_locale_and_db("en-US".to_string(), db);
         let cache = Cache::new(device);
         let viewport = Viewport::new(device, &cache);
         let mut atlas = TextAtlas::new(device, queue, &cache, config.format);
@@ -61,6 +69,7 @@ impl TextOverlay {
             PresentMode::AutoNoVsync => "Off",
             _ => "Other",
         };
+        let chunk_count = chunk_count.min(727);
 
         self.buffer.set_text(
             &mut self.font_system,

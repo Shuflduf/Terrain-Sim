@@ -1,4 +1,5 @@
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
+use web_time::Instant;
 
 use crate::{
     camera::Camera, camera_controller::CameraController, gpu_context::GpuContext, terrain::Terrain,
@@ -112,23 +113,19 @@ impl ApplicationHandler<GpuContext> for Application {
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         let size = window.inner_size();
         self.camera.aspect = size.width as f32 / size.height as f32;
-        self.terrain = Some(Terrain::new(
-            &self.gpu_context.as_ref().unwrap().device,
-            SEED,
-        ));
 
         #[cfg(not(target_arch = "wasm32"))]
         {
-            // If we are not on web we can use pollster to
-            // await the window creation
             self.gpu_context =
                 Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
+            self.terrain = Some(Terrain::new(
+                &self.gpu_context.as_ref().unwrap().device,
+                SEED,
+            ));
         }
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Run the future asynchronously and use the
-            // proxy to send the results to the event loop
             let camera = self.camera;
             if let Some(proxy) = self.proxy.take() {
                 wasm_bindgen_futures::spawn_local(async move {
@@ -144,8 +141,6 @@ impl ApplicationHandler<GpuContext> for Application {
                 });
             }
         }
-
-        // self.gpu_context = Some(pollster::block_on(GpuContext::new(window, &self.camera)).unwrap());
     }
 
     #[allow(unused_mut)]
@@ -156,6 +151,7 @@ impl ApplicationHandler<GpuContext> for Application {
             window.request_redraw();
             let size = window.inner_size();
             event.resize(size.width, size.height);
+            self.terrain = Some(Terrain::new(&event.device, SEED));
         }
         self.gpu_context = Some(event);
     }

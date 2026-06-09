@@ -15,7 +15,7 @@ mod skybox;
 mod water;
 
 const MAX_CHUNKS_PER_FRAME: usize = 2;
-const RENDER_DISTANCE_RADIUS: u32 = 16;
+const RENDER_DISTANCE_RADIUS: f32 = 16.0;
 const NOISE_VALUES: [(f32, f32); 4] = [(12.0, 0.005), (6.0, 0.02), (4.0, 0.05), (2.0, 0.1)];
 const CHUNK_SIZE: usize = 128;
 const TEXTURE_SCALE: f32 = 0.25;
@@ -62,7 +62,7 @@ impl Terrain {
     }
 
     fn chunk_positions_in_radius(chunk_x: i32, chunk_z: i32) -> HashSet<(i32, i32)> {
-        let radius_sq = RENDER_DISTANCE_RADIUS.pow(2) as f32;
+        let radius_sq = RENDER_DISTANCE_RADIUS.powi(2);
         let mut positions =
             HashSet::with_capacity((RENDER_DISTANCE_RADIUS as usize * 2 + 1).pow(2));
 
